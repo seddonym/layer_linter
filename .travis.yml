@@ -26,3 +26,6 @@ deploy:
     tags: true
     repo: seddonym/layer_linter
     python: 3.6
+
+after_success:
+  - codecov
