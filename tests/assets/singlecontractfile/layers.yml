@@ -1,0 +1,15 @@
+Contract A:
+  packages:
+    - foo
+    - bar
+  layers:
+    - one
+    - two
+
+Contract B:
+  packages:
+    - baz/*
+  layers:
+    - one
+    - two
+    - three

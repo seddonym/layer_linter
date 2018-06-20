@@ -1,0 +1,17 @@
+High level:
+  packages:
+    - successpackage
+  layers:
+    - one
+    - two
+    - three
+
+Modular:
+  packages:
+    - successpackage.one
+    - successpackage.two
+    - successpackage.three
+  layers:
+    - alpha
+    - beta
+    - gamma

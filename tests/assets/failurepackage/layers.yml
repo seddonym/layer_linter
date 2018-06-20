@@ -1,0 +1,17 @@
+High level:
+  packages:
+    - failurepackage
+  layers:
+    - one
+    - two
+    - three
+
+Modular:
+  packages:
+    - failurepackage.one
+    - failurepackage.two
+    - failurepackage.three
+  layers:
+    - alpha
+    - beta
+    - gamma
