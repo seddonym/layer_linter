@@ -13,7 +13,6 @@ Layer Linter
         :target: https://layer-linter.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-
 .. image:: https://pyup.io/repos/github/seddonym/layer_linter/shield.svg
      :target: https://pyup.io/repos/github/seddonym/layer_linter/
      :alt: Updates
