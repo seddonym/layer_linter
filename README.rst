@@ -9,6 +9,9 @@ Layer Linter
 .. image:: https://img.shields.io/travis/seddonym/layer_linter.svg
         :target: https://travis-ci.org/seddonym/layer_linter
 
+.. image:: https://codecov.io/gh/seddonym/layer_linter/branch/master/graph/badge.svg
+        :target: https://codecov.io/gh/seddonym/layer_linter
+
 .. image:: https://readthedocs.org/projects/layer-linter/badge/?version=latest
         :target: https://layer-linter.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
