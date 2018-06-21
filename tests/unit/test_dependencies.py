@@ -5,17 +5,17 @@ from layer_linter.dependencies import DependencyGraph
 
 class TestDependencyGraph:
     SOURCES = {
-        'one': Mock(
+        'foo.one': Mock(
             imports=[],
         ),
-        'two': Mock(
-            imports=['one'],
+        'foo.two': Mock(
+            imports=['foo.one'],
         ),
-        'three': Mock(
-            imports=['two'],
+        'foo.three': Mock(
+            imports=['foo.two'],
         ),
-        'four': Mock(
-            imports=['three'],
+        'foo.four': Mock(
+            imports=['foo.three'],
         ),
     }
 
@@ -24,25 +24,25 @@ class TestDependencyGraph:
                           return_value=self.SOURCES):
             graph = DependencyGraph('foo')
 
-        path = graph.find_path(upstream='one', downstream='two')
+        path = graph.find_path(upstream='foo.one', downstream='foo.two')
 
-        assert path == ('two', 'one')
+        assert path == ('foo.two', 'foo.one')
 
     def test_find_path_indirect(self):
         with patch.object(DependencyGraph, '_generate_pydep_sources',
                           return_value=self.SOURCES):
             graph = DependencyGraph('foo')
 
-        path = graph.find_path(upstream='one', downstream='four')
+        path = graph.find_path(upstream='foo.one', downstream='foo.four')
 
-        assert path == ('four', 'three', 'two', 'one',)
+        assert path == ('foo.four', 'foo.three', 'foo.two', 'foo.one',)
 
     def test_find_path_nonexistent(self):
         with patch.object(DependencyGraph, '_generate_pydep_sources',
                           return_value=self.SOURCES):
             graph = DependencyGraph('foo')
 
-        path = graph.find_path(upstream='four', downstream='one')
+        path = graph.find_path(upstream='foo.four', downstream='foo.one')
 
         assert path is None
 

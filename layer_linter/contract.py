@@ -7,6 +7,10 @@ from copy import copy
 logger = logging.getLogger(__name__)
 
 
+class ContractParseError(IOError):
+    pass
+
+
 class Layer:
     def __init__(self, name):
         self.name = name
@@ -132,7 +136,10 @@ def get_contracts(path):
     file_path = os.path.join(path, 'layers.yml')
 
     with open(file_path, 'r') as file:
-        data_from_yaml = yaml.load(file)
+        try:
+            data_from_yaml = yaml.load(file)
+        except:
+            raise ContractParseError('Could not parse {}.'.format(file_path))
         for key, data in data_from_yaml.items():
             contracts.append(contract_from_yaml(key, data))
 

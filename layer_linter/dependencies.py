@@ -16,6 +16,7 @@ class DependencyGraph:
         self.package_name = package_name
         sources = self._generate_pydep_sources()
         self._build_networkx_graph_from_sources(sources)
+        pass
 
     def _generate_pydep_sources(self):
         pydep_graph = py2dep(
@@ -33,9 +34,14 @@ class DependencyGraph:
     def _build_networkx_graph_from_sources(self, sources):
         self._networkx_graph = networkx.DiGraph()
         for module_name, source in sources.items():
-            for upstream_module in source.imports:
-                self._networkx_graph.add_edge(module_name, upstream_module)
-                logger.debug("Added edge from '{}' to '{}'.".format(module_name, upstream_module))
+            # TODO: We only add internal modules to the networkx graph,
+            # but it would be much better if we never added them to the pydep graph.
+            if module_name.startswith(self.package_name):
+                for upstream_module in source.imports:
+                    if upstream_module.startswith(self.package_name):
+                        self._networkx_graph.add_edge(module_name, upstream_module)
+                        logger.debug("Added edge from '{}' to '{}'.".format(
+                            module_name, upstream_module))
 
     def find_path(self, downstream, upstream):
         """
