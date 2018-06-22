@@ -138,7 +138,7 @@ def get_contracts(path):
     with open(file_path, 'r') as file:
         try:
             data_from_yaml = yaml.load(file)
-        except:
+        except Exception:
             raise ContractParseError('Could not parse {}.'.format(file_path))
         for key, data in data_from_yaml.items():
             contracts.append(contract_from_yaml(key, data))

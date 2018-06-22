@@ -1,4 +1,5 @@
 import argparse
+import os
 from .dependencies import get_dependencies
 from .contract import get_contracts, ContractParseError
 from .report import Report
@@ -39,7 +40,7 @@ def _main(package_name, config_directory=None):
         exit("Could not find package '{}' in your path.".format(package_name))
 
     if config_directory is None:
-        config_directory = package.__path__[0]
+        config_directory = os.getcwd()
     try:
         contracts = get_contracts(path=config_directory)
     except FileNotFoundError as e:
