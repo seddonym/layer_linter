@@ -62,6 +62,7 @@ Ready to contribute? Here's how to set up `layer_linter` for local development.
     $ mkvirtualenv layer_linter
     $ cd layer_linter/
     $ python setup.py develop
+    $ pip install -r requirements_dev.txt
 
 4. Create a branch for local development::
 
@@ -86,21 +87,8 @@ Pull Request Guidelines
 
 Before you submit a pull request, check that it meets these guidelines:
 
-1. The pull request should include tests.
-2. If the pull request adds functionality, the docs should be updated. Put
-   your new functionality into a function with a docstring, and add the
-   feature to the list in README.rst.
-3. The pull request should work for Python 3.4, 3.5 and 3.6, and for PyPy. Check
-   https://travis-ci.org/seddonym/layer_linter/pull_requests
-   and make sure that the tests pass for all supported Python versions.
-
-Tips
-----
-
-To run a subset of tests::
-
-$ py.test tests.test_layer_linter
-
+1. The pull request should include tests, and running `tox` should pass without errors.
+2. If the pull request adds functionality, the docs should be updated.
 
 Deploying
 ---------

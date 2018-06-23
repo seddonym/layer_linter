@@ -2,9 +2,9 @@ High level:
   packages:
     - successpackage
   layers:
-    - one
-    - two
     - three
+    - two
+    - one
 
 Modular:
   packages:
@@ -12,6 +12,6 @@ Modular:
     - successpackage.two
     - successpackage.three
   layers:
-    - alpha
-    - beta
     - gamma
+    - beta
+    - alpha

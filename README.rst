@@ -36,7 +36,7 @@ Overview
 
 Layer Linter can be used as part of an automated test suite to check that you
 are following a self-imposed layered architecture within your Python project. This
-is particularly useful if you are working on a complex codebase with in a team,
+is particularly useful if you are working on a complex codebase within a team,
 when you want to enforce a particular architectural style.
 
 To define how layers work within your project, you create a ``layers.yaml`` file.
@@ -52,7 +52,7 @@ Quick start
 
 Install Layer Linter::
 
-    pip install layer_linter
+    pip install layer-linter
 
 Create a ``layers.yaml`` in the root of your project, in this format:
 
@@ -64,9 +64,9 @@ Create a ``layers.yaml`` in the root of your project, in this format:
         - myproject.packagetwo
         - myproject.packagethree
       layers:
-        - lowlevelmodule
-        - mediumlevelmodule
         - highlevelmodule
+        - mediumlevelmodule
+        - lowlevelmodule
 
 From your project root, run::
 
@@ -79,12 +79,3 @@ If your code violates the contract, you will see an error message as follows:
     Contracts: 0 kept, 1 broken.
     - Broken contract My Layers Contract:
       - myproject.packagetwo.mediumlevelmodule not allowed to import myproject.packagetwo.highlevelmodule.
-
-Credits
--------
-
-This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
-
-.. _documentation: https://layer-linter.readthedocs.io
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage

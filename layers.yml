@@ -2,7 +2,7 @@ Layer Linter architecture:
   packages:
     - layer_linter
   layers:
-    - dependencies
-    - contract
-    - report
     - cmdline
+    - report
+    - contract
+    - dependencies

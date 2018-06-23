@@ -7,6 +7,7 @@ Welcome to Layer Linter's documentation!
 
    readme
    installation
+   concepts
    usage
    contributing
    authors

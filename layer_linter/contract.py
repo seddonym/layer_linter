@@ -35,7 +35,7 @@ class Contract:
         logger.debug('Checking dependencies for contract {}...'.format(self))
 
         for package in self.packages:
-            for layer in self.layers:
+            for layer in reversed(self.layers):
                 self._check_layer_does_not_import_downstream(layer, package, dependencies)
 
     def _check_layer_does_not_import_downstream(self, layer, package, dependencies):
@@ -103,7 +103,7 @@ class Contract:
             )
 
     def _get_layers_downstream_of(self, layer):
-        return self.layers[self.layers.index(layer) + 1:]
+        return reversed(self.layers[:self.layers.index(layer)])
 
     def __str__(self):
         return self.name

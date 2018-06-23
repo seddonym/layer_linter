@@ -16,7 +16,7 @@ To install Layer Linter, run this command in your terminal:
 
 .. code-block:: console
 
-    $ pip install layer_linter
+    $ pip install layer-linter
 
 This is the preferred method to install Layer Linter, as it will always install the most recent stable release.
 

@@ -16,9 +16,9 @@ class TestContractCheck:
                 'foo',
             ),
             layers=(
-                Layer('one'),
-                Layer('two'),
                 Layer('three'),
+                Layer('two'),
+                Layer('one'),
             ),
         )
         dep_graph = mock.Mock()
@@ -43,9 +43,9 @@ class TestContractCheck:
                 'foo',
             ),
             layers=(
-                Layer('one'),
-                Layer('two'),
                 Layer('three'),
+                Layer('two'),
+                Layer('one'),
             ),
         )
         dep_graph = mock.Mock()
@@ -76,9 +76,9 @@ class TestContractCheck:
                 'foo',
             ),
             layers=(
-                Layer('one'),
-                Layer('two'),
                 Layer('three'),
+                Layer('two'),
+                Layer('one'),
             ),
         )
 
@@ -94,8 +94,8 @@ class TestContractCheck:
                 'foo',
             ),
             layers=(
-                Layer('one'),
                 Layer('two'),
+                Layer('one'),
             ),
         )
         dep_graph = mock.Mock()
@@ -137,9 +137,9 @@ class TestContractCheck:
                 'foo',
             ),
             layers=(
-                Layer('one'),
-                Layer('two'),
                 Layer('three'),
+                Layer('two'),
+                Layer('one'),
             ),
         )
         dep_graph = mock.Mock()

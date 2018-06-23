@@ -2,9 +2,9 @@ High level:
   packages:
     - failurepackage
   layers:
-    - one
-    - two
     - three
+    - two
+    - one
 
 Modular:
   packages:
@@ -12,6 +12,6 @@ Modular:
     - failurepackage.two
     - failurepackage.three
   layers:
-    - alpha
-    - beta
     - gamma
+    - beta
+    - alpha

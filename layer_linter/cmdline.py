@@ -20,7 +20,7 @@ def create_parser():
         '--config_directory',
         required=False,
         help="The directory containing your layers.yaml. If not supplied, Layer Linter will "
-             "look inside the package's directory."
+             "look inside the current directory."
     )
 
     return parser
