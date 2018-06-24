@@ -36,7 +36,7 @@ For some examples, see :doc:`concepts`.
 Running the linter
 ------------------
 
-Layer Linter provides a single command: ``layer-linter``.
+Layer Linter provides a single command: ``layer-lint``.
 
 Running this will check that your project adheres to the contracts in your ``layers.yaml``.
 
@@ -53,10 +53,10 @@ Default usage:
 
 .. code-block:: none
 
-    layer-linter myproject
+    layer-lint myproject
 
 Custom ``layers.yaml`` location:
 
 .. code-block:: none
 
-    layer-linter myproject --config-directory /path/to/directory
+    layer-lint myproject --config-directory /path/to/directory

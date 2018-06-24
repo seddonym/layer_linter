@@ -43,7 +43,7 @@ To define how layers work within your project, you create a ``layers.yaml`` file
 This file prescribes the order in which different modules within your project may
 import from each other.
 
-Running the ``layer-linter`` command will parse the file, analyse your project's
+Running the ``layer-lint`` command will parse the file, analyse your project's
 internal dependencies within your project, and error if you are violating
 your prescribed architecture.
 
@@ -70,7 +70,7 @@ Create a ``layers.yaml`` in the root of your project, in this format:
 
 From your project root, run::
 
-    layer-linter myproject
+    layer-lint myproject
 
 If your code violates the contract, you will see an error message as follows:
 

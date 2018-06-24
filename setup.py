@@ -50,7 +50,7 @@ setup(
     zip_safe=False,
     entry_points={
         'console_scripts': [
-            'layer-linter = layer_linter.cmdline:main',
+            'layer-lint = layer_linter.cmdline:main',
         ],
     },
 )
