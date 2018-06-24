@@ -25,7 +25,7 @@ setup(
     author="David Seddon",
     author_email='david@seddonym.me',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
@@ -39,14 +39,14 @@ setup(
     license="BSD license",
     long_description=readme + '\n\n' + history,
     include_package_data=True,
-    keywords='layer_linter',
-    name='layer_linter',
+    keywords='layer-linter layer-lint',
+    name='layer-linter',
     packages=find_packages(include=['layer_linter']),
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/seddonym/layer_linter',
-    version='0.2.0',
+    version='0.3.0',
     zip_safe=False,
     entry_points={
         'console_scripts': [
