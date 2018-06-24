@@ -10,7 +10,7 @@ Layer Linter
     :alt: Python versions
     :target: http://pypi.python.org/pypi/layer-linter/
 
-.. image:: https://img.shields.io/travis/seddonym/layer_linter.svg
+.. image:: https://api.travis-ci.org/seddonym/layer_linter.svg?branch=master
         :target: https://travis-ci.org/seddonym/layer_linter
 
 .. image:: https://codecov.io/gh/seddonym/layer_linter/branch/master/graph/badge.svg
