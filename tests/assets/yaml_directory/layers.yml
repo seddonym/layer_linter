@@ -1,6 +1,6 @@
 High level:
   packages:
-    - flowpackage
+    - dependenciespackage
   layers:
     - four
     - three
