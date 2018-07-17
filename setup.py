@@ -15,6 +15,7 @@ requirements = [
     'networkx>=2.1,<3',
     'pydeps>=1.5.1,<2',
     'PyYAML>=3.12,<4',
+    'click>=6.7,<7',
 ]
 
 setup_requirements = ['pytest-runner', ]
