@@ -1,5 +1,7 @@
 import argparse
 import os
+import logging
+
 from .dependencies import get_dependencies
 from .contract import get_contracts, ContractParseError
 from .report import Report
@@ -20,7 +22,14 @@ def create_parser():
         '--config_directory',
         required=False,
         help="The directory containing your layers.yaml. If not supplied, Layer Linter will "
-             "look inside the current directory."
+             "look inside the current directory.",
+
+    )
+    parser.add_argument(
+        '--debug',
+        required=False,
+        action="store_true",
+        help="Whether to display debug information.",
     )
 
     return parser
@@ -29,10 +38,12 @@ def create_parser():
 def main():
     parser = create_parser()
     args = parser.parse_args()
-    return _main(args.package_name, args.config_directory)
+    return _main(args.package_name, args.config_directory, args.debug)
 
 
-def _main(package_name, config_directory=None):
+def _main(package_name, config_directory=None, is_debug=False):
+    if is_debug:
+        logging.basicConfig(level=logging.DEBUG)
 
     try:
         package = __import__(package_name)
