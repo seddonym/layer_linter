@@ -157,3 +157,52 @@ class TestContractCheck:
             ['foo.one', 'foo.two'],
             ['foo.two', 'foo.three'],
         ]
+
+    @pytest.mark.parametrize('longer_first', (True, False))
+    def test_only_shortest_violation_is_reported(self, longer_first):
+        contract = Contract(
+            name='Foo contract',
+            packages=(
+                'foo',
+            ),
+            layers=(
+                Layer('two'),
+                Layer('one'),
+            ),
+        )
+        dep_graph = mock.Mock()
+        dep_graph.get_descendants.side_effect = [
+            # For foo.one
+            ['foo.one.alpha', 'foo.one.alpha.red', 'foo.one.alpha.green', 'foo.one.beta'],
+            # For foo.two
+            [],
+        ]
+        # These are both dependency violations, but it's more useful just to report
+        # the more direct violation (the second one in this case).
+        if longer_first:
+            dep_graph.find_path.side_effect = [
+                None,
+                ['foo.one.alpha', 'foo.one.alpha.green', 'foo.x.alpha', 'foo.three'],
+                ['foo.one.alpha.red', 'foo.one.alpha.green', 'foo.x.alpha', 'foo.three'],
+                ['foo.one.alpha.green', 'foo.x.alpha', 'foo.three'],
+                None,
+            ]
+        else:
+            dep_graph.find_path.side_effect = [
+                None,
+                ['foo.one.alpha', 'foo.x.alpha', 'foo.three'],
+                None,
+                ['foo.one.alpha.green', 'foo.one.alpha', 'foo.x.alpha', 'foo.three'],
+                None,
+            ]
+
+        contract.check_dependencies(dep_graph)
+
+        if longer_first:
+            assert contract.illegal_dependencies == [
+                ['foo.one.alpha.green', 'foo.x.alpha', 'foo.three'],
+            ]
+        else:
+            assert contract.illegal_dependencies == [
+                ['foo.one.alpha', 'foo.x.alpha', 'foo.three'],
+            ]

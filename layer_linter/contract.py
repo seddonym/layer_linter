@@ -50,12 +50,15 @@ class Contract:
 
         for upstream_module in modules_in_this_layer:
             for downstream_module in modules_in_downstream_layers:
+                logger.debug('Upstream {}, downstream {}.'.format(upstream_module,
+                                                                  downstream_module))
                 path = dependencies.find_path(
                     upstream=downstream_module,
                     downstream=upstream_module)
+                logger.debug('Path is {}.'.format(path))
                 if path and not self._path_is_via_another_layer(path, layer, package):
                     logger.debug('Illegal dependency found: {}'.format(path))
-                    self.illegal_dependencies.append(path)
+                    self._update_illegal_dependencies(path)
 
     def _get_modules_in_layer(self, layer, package, dependencies):
         """
@@ -91,6 +94,34 @@ class Contract:
         modules_via = path[1:-1]
 
         return any(path_module in layer_modules for path_module in modules_via)
+
+    def _update_illegal_dependencies(self, path):
+        # Don't duplicate path. So if the path is already present in another dependency,
+        # don't add it. If another dependency is present in this path, replace it with this one.
+        new_path_set = set(path)
+        logger.debug('Updating illegal dependencies with {}.'.format(path))
+        illegal_dependencies_copy = self.illegal_dependencies[:]
+        paths_to_remove = []
+        add_path = True
+        for existing_path in illegal_dependencies_copy:
+            existing_path_set = set(existing_path)
+            logger.debug('Comparing new path with {}...'.format(existing_path))
+            if new_path_set.issubset(existing_path_set):
+                # Remove the existing_path, as the new path will be more succinct.
+                logger.debug('Removing existing.')
+                paths_to_remove.append(existing_path)
+                add_path = True
+            elif existing_path_set.issubset(new_path_set):
+                # Don't add the new path, it's implied more succinctly with the existing path.
+                logger.debug('Skipping new path.')
+                add_path = False
+
+        logger.debug('Paths to remove: {}'.format(paths_to_remove))
+        self.illegal_dependencies = [
+            i for i in self.illegal_dependencies if i not in paths_to_remove
+        ]
+        if add_path:
+            self.illegal_dependencies.append(path)
 
     @property
     def is_kept(self):

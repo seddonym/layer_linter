@@ -29,7 +29,7 @@ class DependencyGraph:
 
         # Remove dummy file
         os.unlink(dummy_module)
-        
+
         self._sources = finder._depgraph
         return self._sources
 
