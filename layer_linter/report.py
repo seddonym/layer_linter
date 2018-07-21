@@ -45,7 +45,7 @@ class Report:
 
         for broken_contract in self.broken_contracts:
             ConsolePrinter.print_heading(str(broken_contract), ConsolePrinter.HEADING_LEVEL_THREE,
-                                style=ConsolePrinter.ERROR)
+                                         style=ConsolePrinter.ERROR)
 
             ConsolePrinter.new_line()
 
