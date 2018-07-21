@@ -1,8 +1,9 @@
 import logging
-from pydeps.py2depgraph import py2dep
+from pydeps.py2depgraph import _create_dummy_module, MyModuleFinder
 import networkx
 from networkx.algorithms import shortest_path
-
+import sys
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -19,25 +20,26 @@ class DependencyGraph:
         pass
 
     def _generate_pydep_sources(self):
-        pydep_graph = py2dep(
-            self.package_name,
-            verbose=0,
-            show_cycles=False,
-            show_raw_deps=False,
-            noise_level=200,
-            max_bacon=200,
-            show_deps=False,
-        )
-        self._pydep_graph = pydep_graph
-        return pydep_graph.sources
+        dummy_module = _create_dummy_module(self.package_name, verbose=None)
+        path = sys.path[:]
+        path.insert(0, os.path.dirname(dummy_module))
+
+        finder = MyModuleFinder(path)
+        finder.run_script(dummy_module)
+
+        # Remove dummy file
+        os.unlink(dummy_module)
+
+        self._sources = finder._depgraph
+        return self._sources
 
     def _build_networkx_graph_from_sources(self, sources):
         self._networkx_graph = networkx.DiGraph()
-        for module_name, source in sources.items():
+        for module_name, imported_modules in sources.items():
             # TODO: We only add internal modules to the networkx graph,
             # but it would be much better if we never added them to the pydep graph.
             if module_name.startswith(self.package_name):
-                for upstream_module in source.imports:
+                for upstream_module in imported_modules:
                     if upstream_module.startswith(self.package_name):
                         self._networkx_graph.add_edge(module_name, upstream_module)
                         logger.debug("Added edge from '{}' to '{}'.".format(
@@ -77,7 +79,7 @@ class DependencyGraph:
             List of modules that are within that module (string).
         """
         descendants = []
-        for candidate in self._pydep_graph.sources.keys():
+        for candidate in self._sources.keys():
             if candidate.startswith('{}.'.format(module)):
                 descendants.append(candidate)
         return descendants
