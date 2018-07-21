@@ -20,30 +20,18 @@ class DependencyGraph:
         pass
 
     def _generate_pydep_sources(self):
-        fname = _create_dummy_module(self.package_name, verbose=None)
+        dummy_module = _create_dummy_module(self.package_name, verbose=None)
         path = sys.path[:]
-        path.insert(0, os.path.dirname(fname))
+        path.insert(0, os.path.dirname(dummy_module))
 
         finder = MyModuleFinder(path)
-        finder.run_script(fname)
-        self._sources = finder._depgraph
+        finder.run_script(dummy_module)
 
         # Remove dummy file
-        os.unlink(fname)
-
+        os.unlink(dummy_module)
+        
+        self._sources = finder._depgraph
         return self._sources
-
-        # pydep_graph = py2dep(
-        #     self.package_name,
-        #     verbose=0,
-        #     show_cycles=False,
-        #     show_raw_deps=False,
-        #     noise_level=200,
-        #     max_bacon=200,
-        #     show_deps=False,
-        # )
-        # self._pydep_graph = pydep_graph
-        # return pydep_graph.sources
 
     def _build_networkx_graph_from_sources(self, sources):
         self._networkx_graph = networkx.DiGraph()
