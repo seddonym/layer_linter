@@ -17,3 +17,11 @@ History
 
 * Rename command to ``layer-lint``.
 * Changed order of layers in ``layers.yaml`` to be listed high level to low level.
+
+0.4.0 (2018-07-22)
+------------------
+
+* Made dependency analysis more efficient and robust.
+* Improved report formatting.
+* Removed illegal dependencies that were implied by other, more succinct illegal dependencies.
+* Added ``--debug`` command line argument.
