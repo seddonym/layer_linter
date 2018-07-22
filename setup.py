@@ -34,6 +34,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
     description="Layer Linter checks that your project follows a custom-defined layered architecture.",
     install_requires=requirements,
