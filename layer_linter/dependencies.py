@@ -35,13 +35,17 @@ class DependencyGraph:
 
     def _build_networkx_graph_from_sources(self, sources):
         self._networkx_graph = networkx.DiGraph()
+        self.module_count = 0
+        self.dependency_count = 0
         for module_name, imported_modules in sources.items():
             # TODO: We only add internal modules to the networkx graph,
             # but it would be much better if we never added them to the pydep graph.
             if module_name.startswith(self.package_name):
+                self.module_count += 1
                 for upstream_module in imported_modules:
                     if upstream_module.startswith(self.package_name):
                         self._networkx_graph.add_edge(module_name, upstream_module)
+                        self.dependency_count += 1
                         logger.debug("Added edge from '{}' to '{}'.".format(
                             module_name, upstream_module))
 

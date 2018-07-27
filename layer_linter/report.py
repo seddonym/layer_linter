@@ -2,7 +2,8 @@ import click
 
 
 class Report:
-    def __init__(self):
+    def __init__(self, dependencies):
+        self.dependencies = dependencies
         self.kept_contracts = []
         self.broken_contracts = []
         self.has_broken_contracts = False
@@ -17,6 +18,12 @@ class Report:
     def output(self):
         ConsolePrinter.print_heading('Layer Linter', ConsolePrinter.HEADING_LEVEL_ONE)
         ConsolePrinter.print_heading('Contracts', ConsolePrinter.HEADING_LEVEL_TWO)
+
+        ConsolePrinter.print_heading(
+            'Analyzed {} files, {} dependencies.'.format(
+                self.dependencies.module_count,
+                self.dependencies.dependency_count,
+            ), ConsolePrinter.HEADING_LEVEL_THREE)
 
         if not (self.kept_contracts or self.broken_contracts):
             ConsolePrinter.print_error('No contracts found.')

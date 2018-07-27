@@ -25,3 +25,8 @@ History
 * Improved report formatting.
 * Removed illegal dependencies that were implied by other, more succinct illegal dependencies.
 * Added ``--debug`` command line argument.
+
+latest
+------
+
+* Added count of analysed files and dependencies to report.
