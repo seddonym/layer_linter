@@ -59,13 +59,12 @@ def _main(package_name, config_directory=None, is_debug=False):
     except ContractParseError as e:
         exit('Error: {}'.format(e))
 
-    dependencies = get_dependencies(package.__name__)
+    dependencies = get_dependencies(package)
 
     report = Report(dependencies)
     for contract in contracts:
         contract.check_dependencies(dependencies)
         report.add_contract(contract)
-
     report.output()
 
     if report.has_broken_contracts:

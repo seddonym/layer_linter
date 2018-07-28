@@ -3,7 +3,7 @@ import sys
 from layer_linter.cmdline import _main
 
 
-assets_path = os.path.join(os.path.dirname(__file__), '..', 'assets')
+assets_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'assets'))
 
 
 class TestMain:

@@ -1,11 +1,13 @@
 from layer_linter.dependencies import get_dependencies
 import os
+import sys
 
 
 def test_get_dependencies():
     dirname = os.path.dirname(__file__)
-    path = os.path.join(dirname, '..', 'assets')
-    os.chdir(path)
+    path = os.path.abspath(os.path.join(dirname, '..', 'assets'))
+
+    sys.path.append(path)
 
     ROOT_PACKAGE = 'dependenciespackage'
     MODULE_ONE = "{}.one".format(ROOT_PACKAGE)
@@ -23,7 +25,8 @@ def test_get_dependencies():
     SUBSUBMODULE_TWO = "{}.{}.{}.two".format(ROOT_PACKAGE, SUBPACKAGE, SUBSUBPACKAGE)
     SUBSUBMODULE_THREE = "{}.{}.{}.three".format(ROOT_PACKAGE, SUBPACKAGE, SUBSUBPACKAGE)
 
-    dependencies = get_dependencies(ROOT_PACKAGE)
+    root_package = __import__(ROOT_PACKAGE)
+    dependencies = get_dependencies(root_package)
 
     assert dependencies.find_path(
         upstream=MODULE_ONE,
