@@ -34,7 +34,7 @@ class TestReport:
         """
         Report on the supplied list of Contracts.
         """
-        self.report = Report()
+        self.report = Report(dependencies=MagicMock())
 
         for contract in contracts:
             self.report.add_contract(contract)

@@ -61,7 +61,7 @@ def _main(package_name, config_directory=None, is_debug=False):
 
     dependencies = get_dependencies(package.__name__)
 
-    report = Report()
+    report = Report(dependencies)
     for contract in contracts:
         contract.check_dependencies(dependencies)
         report.add_contract(contract)

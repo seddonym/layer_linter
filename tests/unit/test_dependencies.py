@@ -69,3 +69,18 @@ class TestDependencyGraph:
             graph._sources = sources
 
         assert graph.get_descendants('foo.two') == []
+
+    def test_module_count(self):
+        with patch.object(DependencyGraph, '_generate_pydep_sources',
+                          return_value=self.SOURCES):
+            graph = DependencyGraph('foo')
+
+        # Assert the module count is the number of sources.
+        assert graph.module_count == 4
+
+    def test_dependency_count(self):
+        with patch.object(DependencyGraph, '_generate_pydep_sources',
+                          return_value=self.SOURCES):
+            graph = DependencyGraph('foo')
+
+        assert graph.dependency_count == 3
