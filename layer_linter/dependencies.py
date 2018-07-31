@@ -1,5 +1,8 @@
 import logging
-from pydeps.py2depgraph import _create_dummy_module, MyModuleFinder
+from keyword import iskeyword
+from pydeps.py2depgraph import (
+    MyModuleFinder as PydepsModuleFinder, is_module,
+    pysource as is_python_file)
 import networkx
 from networkx.algorithms import shortest_path
 import sys
@@ -12,42 +15,158 @@ def get_dependencies(package_name):
     return DependencyGraph(package_name)
 
 
+class InternalModuleFinder(PydepsModuleFinder):
+    """
+    Analyses the internal dependencies for a Python package.
+
+    The API is a bit unintuitive. You instantiate the module finder with the Python package
+    that you want to analyse:
+         package = __import__('mypackage')
+        finder = InternalModuleFinder(package)
+
+    Then you pass `run_script` the name of a Python module, built elsewhere, that contains imports
+    of all the modules within that package:
+
+         finder.run_script('path/to/dummy_module.py')
+
+    Finally you can access a dictionary containing all the import information for each imported
+    module:
+         depgraph = finder._depgraph
+     This is very much an interim approach, leveraging the work of the Pydeps package. At some point
+    we should simplify this, which will probably remove the need for Pydeps as a dependency.
+    We can probably use modulefinder.ModuleFinder from the standard library.
+    """
+    def __init__(self, *args, package, **kwargs):
+        self.package = package
+        kwargs['fname'] = None
+        super().__init__(*args, **kwargs)
+
+    def load_module(self, fqname, fp, pathname, file_info):
+        if not (fqname.startswith(self.package.__name__) or fqname == '__main__'):
+            logger.debug('Skip finding {}'.format(fqname))
+            return None
+        return super().load_module(fqname, fp, pathname, file_info)
+
+
+class IllegalModuleName(Exception):
+    pass
+
+
 class DependencyGraph:
-    def __init__(self, package_name):
-        self.package_name = package_name
+    def __init__(self, package):
+        self.package = package
+        self.package_name = package.__name__
         sources = self._generate_pydep_sources()
+
+        # The module count is the number of modules present in the dummy module.
+        self.module_count = len(sources['__main__'])
+
         self._build_networkx_graph_from_sources(sources)
         pass
 
     def _generate_pydep_sources(self):
-        dummy_module = _create_dummy_module(self.package_name, verbose=None)
+        dummy_module_filename = self._create_dummy_module()
         path = sys.path[:]
-        path.insert(0, os.path.dirname(dummy_module))
+        path.insert(0, os.path.dirname(dummy_module_filename))
 
-        finder = MyModuleFinder(path)
-        finder.run_script(dummy_module)
+        finder = InternalModuleFinder(package=self.package)
+        finder.run_script(dummy_module_filename)
 
         # Remove dummy file
-        os.unlink(dummy_module)
+        os.unlink(dummy_module_filename)
 
         self._sources = finder._depgraph
+
         return self._sources
+
+    def _create_dummy_module(self):
+        """
+        Create a temporary file that imports every module within the supplied python package.
+         Return:
+            The name of the dummy file (string).
+        """
+        dummy_module_filename = '_dummy_%s.py' % self.package.__name__
+        # Below causes problems with external python packages
+        package_directory = os.path.dirname(self.package.__file__)
+
+        with open(dummy_module_filename, 'w') as dummy_file:
+            for module_filename in self._get_python_files_inside_package(package_directory):
+                try:
+                    module_name = self._module_name_from_filename(module_filename,
+                                                                  package_directory)
+                except IllegalModuleName:
+                    logger.debug('Skipped illegal module {}.'.format(module_filename))
+                    continue
+                self._write_import_to_file(dummy_file, module_name)
+
+        return dummy_module_filename
+
+    def _get_python_files_inside_package(self, directory):
+        """
+        Get a list of Python files within the supplied package directory.
+         Return:
+            Generator of Python file names.
+        """
+        for root, dirs, files in os.walk(directory):
+            # Don't include directories that aren't Python packages.
+            if '__init__.py' not in files:
+                continue
+            # Don't include hidden directories.
+            dotdirs = [d for d in dirs if d.startswith('.')]
+            for d in dotdirs:
+                dirs.remove(d)
+            for filename in files:
+                if is_python_file(filename):
+                    yield os.path.abspath(os.path.join(root, filename))
+
+    def _module_name_from_filename(self, filename_and_path, package_directory):
+        """
+        Args:
+            filename_and_path (string) - the full name of the Python file.
+            package_directory (string) - the full path of the top level Python package directory.
+         Returns:
+            Absolute module name for importing (string).
+        """
+        if not filename_and_path.startswith(package_directory):
+            raise ValueError('Filename and path should be in the package directory.')  # pragma: no cover
+        if not filename_and_path[-3:] == '.py':
+            raise ValueError('Filename is not a Python file.')  # pragma: no cover
+        container_directory, package_name = os.path.split(package_directory)
+        internal_filename_and_path = filename_and_path[len(package_directory):]
+        internal_filename_and_path_without_extension = internal_filename_and_path[1:-3]
+        components = [package_name] + internal_filename_and_path_without_extension.split('/')
+        if components[-1] == '__init__':
+            components.pop()
+        if any(map(iskeyword, components)):
+            raise IllegalModuleName
+        return '.'.join(components)
+
+    def _write_import_to_file(self, fp, module):
+        if 'migrations' in module:
+            # This is used in Pydeps' original function, probably to remove noise when analysing
+            # Django projects.
+            logger.debug("Skipped printing {} to file because it looks like a migrations "
+                         "file.".format(module))
+            return
+        print("try:", file=fp)
+        print("    import", module, file=fp)
+        print("except:", file=fp)
+        print("    pass", file=fp)
+        logger.debug('Wrote import to file: {}.'.format(module))
 
     def _build_networkx_graph_from_sources(self, sources):
         self._networkx_graph = networkx.DiGraph()
-        self.module_count = 0
         self.dependency_count = 0
         for module_name, imported_modules in sources.items():
-            # TODO: We only add internal modules to the networkx graph,
-            # but it would be much better if we never added them to the pydep graph.
-            if module_name.startswith(self.package_name):
-                self.module_count += 1
-                for upstream_module in imported_modules:
-                    if upstream_module.startswith(self.package_name):
-                        self._networkx_graph.add_edge(module_name, upstream_module)
-                        self.dependency_count += 1
-                        logger.debug("Added edge from '{}' to '{}'.".format(
-                            module_name, upstream_module))
+            if module_name == '__main__':
+                #  Skip; this is just the dummy module.
+                continue
+            for upstream_module in imported_modules:
+                if upstream_module.startswith(self.package_name):
+                    self._networkx_graph.add_edge(module_name, upstream_module)
+                    self.dependency_count += 1
+                    logger.debug("Added edge from '{}' to '{}'.".format(
+                        module_name, upstream_module))
 
     def find_path(self, downstream, upstream):
         """

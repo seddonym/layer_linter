@@ -30,3 +30,5 @@ latest
 ------
 
 * Added count of analysed files and dependencies to report.
+* Fixed issues from running command in a different directory to the package.
+* Increased speed of analysis. 
