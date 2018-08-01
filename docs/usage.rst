@@ -22,6 +22,10 @@ The file contains one or more contracts, in the following format:
             - [layer]
             - [layer]
             [...]
+        whitelisted_paths:
+            - [importing.module] <- [imported.module]
+            - [importing.module] <- [imported.module]
+            [...]
 
 1. **Contract name**: A string to describe your contract.
 2. **Package**: Absolute name of any Python package that contains the layers as
@@ -30,6 +34,8 @@ The file contains one or more contracts, in the following format:
    ``packages``. Modules lower down the list must not import modules higher up.
    (Remember, a Python module can either be a ``.py`` file or a directory with
    an ``__init__.py`` file inside.)
+4. **Whitelisted paths** (optional): If you wish certain import paths not to
+   break in the contract, you can optionally whitelist them.
 
 For some examples, see :doc:`concepts`.
 

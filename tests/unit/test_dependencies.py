@@ -1,6 +1,14 @@
 from unittest.mock import patch, Mock
 
-from layer_linter.dependencies import DependencyGraph
+from layer_linter.dependencies import DependencyGraph, ImportPath
+
+
+class TestImportPath:
+    def test_repr(self):
+        import_path = ImportPath(
+            importer='foo', imported='bar'
+        )
+        assert repr(import_path) == '<ImportPath: foo <- bar>'
 
 
 class TestDependencyGraph:
@@ -94,3 +102,36 @@ class TestDependencyGraph:
 
         assert graph.dependency_count == 3
 
+    def test_direct_ignore_path_is_ignored(self):
+        with patch.object(DependencyGraph, '_generate_pydep_sources',
+                          return_value=self.SOURCES):
+            graph = DependencyGraph(self.PACKAGE)
+
+        ignore_paths = (
+            ImportPath(
+                importer='foo.two', imported='foo.one',
+            ),
+        )
+
+        path = graph.find_path(
+            upstream='foo.one', downstream='foo.two',
+            ignore_paths=ignore_paths)
+
+        assert path is None
+
+    def test_indirect_ignore_path_is_ignored(self):
+        with patch.object(DependencyGraph, '_generate_pydep_sources',
+                          return_value=self.SOURCES):
+            graph = DependencyGraph(self.PACKAGE)
+
+        ignore_paths = (
+            ImportPath(
+                importer='foo.three', imported='foo.two',
+            ),
+        )
+
+        path = graph.find_path(
+            upstream='foo.one', downstream='foo.four',
+            ignore_paths=ignore_paths)
+
+        assert path is None

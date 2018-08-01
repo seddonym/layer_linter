@@ -3,6 +3,8 @@ import os
 import logging
 from copy import copy
 
+from .dependencies import ImportPath
+
 
 logger = logging.getLogger(__name__)
 
@@ -23,10 +25,11 @@ class Layer:
 
 
 class Contract:
-    def __init__(self, name, packages, layers, recursive=False):
+    def __init__(self, name, packages, layers, whitelisted_paths=None, recursive=False):
         self.name = name
         self.packages = packages
         self.layers = layers
+        self.whitelisted_paths = whitelisted_paths if whitelisted_paths else []
         self.recursive = recursive
 
     def check_dependencies(self, dependencies):
@@ -54,7 +57,9 @@ class Contract:
                                                                   downstream_module))
                 path = dependencies.find_path(
                     upstream=downstream_module,
-                    downstream=upstream_module)
+                    downstream=upstream_module,
+                    ignore_paths=self.whitelisted_paths,
+                )
                 logger.debug('Path is {}.'.format(path))
                 if path and not self._path_is_via_another_layer(path, layer, package):
                     logger.debug('Illegal dependency found: {}'.format(path))
@@ -148,10 +153,21 @@ def contract_from_yaml(key, data):
     for layer_data in data['layers']:
         layers.append(Layer(layer_data))
 
+    whitelisted_paths = []
+    for whitelist_data in data.get('whitelisted_paths', []):
+        try:
+            importer, imported = whitelist_data.split(' <- ')
+        except ValueError:
+            raise ValueError('Whitelisted paths must be in the format '
+                             '"importer.module <- imported.module".')
+
+        whitelisted_paths.append(ImportPath(importer, imported))
+
     return Contract(
         name=key,
         packages=data['packages'],
         layers=layers,
+        whitelisted_paths=whitelisted_paths,
     )
 
 
@@ -169,7 +185,8 @@ def get_contracts(path):
     with open(file_path, 'r') as file:
         try:
             data_from_yaml = yaml.load(file)
-        except Exception:
+        except Exception as e:
+            logger.debug(e)
             raise ContractParseError('Could not parse {}.'.format(file_path))
         for key, data in data_from_yaml.items():
             contracts.append(contract_from_yaml(key, data))

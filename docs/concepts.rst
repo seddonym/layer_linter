@@ -147,3 +147,57 @@ and also *between them* (``users`` to ``products`` to ``billing``).
 `the Wikipedia page on Multitier Architecture`_).
 
 .. _`the Wikipedia page on Multitier Architecture`: https://en.wikipedia.org/wiki/Multitier_architecture
+
+Whitelisting paths
+------------------
+
+Sometimes, you may wish to tolerate certain dependencies that do not adhere to your contract.
+To do this, include them as *whitelisted paths* in your contract.
+
+Let's say you have a project that follows a three tier architecture, but you
+have a ``utils`` module that introduces a circular dependency between two of your layers. The report
+might look something like this:
+
+.. code-block:: none
+
+    ----------------
+    Broken contracts
+    ----------------
+
+
+    My layer contract
+    -----------------
+
+    1. myproject.packagetwo.lowlevelmodule imports myproject.packagetwo.highlevelmodule:
+
+        myproject.packagetwo.lowlevelmodule <-
+        myproject.utils <-
+        myproject.packagetwo.highlevelmodule
+
+If you want to suppress this error, you can add one component of the path to the contract like so:
+
+.. code-block:: none
+
+    My Layers Contract:
+      packages:
+        - myproject.packageone
+        - myproject.packagetwo
+        - myproject.packagethree
+      layers:
+        - highlevelmodule
+        - mediumlevelmodule
+        - lowlevelmodule
+      whitelisted_paths:
+        - myproject.packagetwo.lowlevelmodule <- myproject.utils
+
+Running the linter again will show the contract passing.
+
+There are a few use cases:
+
+- Your project does not completely adhere to the contract, but you want to prevent it getting worse.
+  You can whitelist any known issues, and gradually fix them.
+- You have an exceptional circumstance in your project that you are comfortable with,
+  and don't wish to fix.
+- You want to understand how many dependencies you would need to fix before a project
+  conforms to a particular architecture. Because Layer Linter only shows the most direct
+  dependency violation, whitelisting paths can reveal less direct ones.

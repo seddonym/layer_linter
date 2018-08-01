@@ -1,6 +1,7 @@
 import os
 
 from layer_linter.contract import get_contracts, Layer
+from layer_linter.dependencies import ImportPath
 
 
 def test_get_contracts():
@@ -20,6 +21,10 @@ def test_get_contracts():
             'name': 'Contract B',
             'packages': ['baz/*'],
             'layers': ['one', 'two', 'three'],
+            'whitelisted_paths': [
+                ('baz.utils', 'baz.three.green'),
+                ('baz.three.blue', 'baz.two'),
+            ],
         },
     ]
     sorted_contracts = sorted(contracts, key=lambda i: i.name)
@@ -35,3 +40,10 @@ def test_get_contracts():
             expected_layer_data = expected_data['layers'][layer_index]
             assert isinstance(layer, Layer)
             assert layer.name == expected_layer_data
+
+        for whitelisted_index, whitelisted_path in enumerate(contract.whitelisted_paths):
+            expected_importer, expected_imported = expected_data['whitelisted_paths'][
+                whitelisted_index]
+            assert isinstance(whitelisted_path, ImportPath)
+            assert whitelisted_path.importer == expected_importer
+            assert whitelisted_path.imported == expected_imported

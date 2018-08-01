@@ -146,6 +146,9 @@ class ConsolePrinter:
     @classmethod
     def print_contract_one_liner(cls, contract, is_kept):
         click.secho('{} '.format(contract), nl=False)
+        if contract.whitelisted_paths:
+            click.secho('({} whitelisted paths)'.format(len(contract.whitelisted_paths)),
+                        nl=False)
         status_map = {
             True: ('KEPT', cls.SUCCESS),
             False: ('BROKEN', cls.ERROR),

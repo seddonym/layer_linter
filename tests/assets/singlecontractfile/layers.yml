@@ -13,3 +13,6 @@ Contract B:
     - one
     - two
     - three
+  whitelisted_paths:
+    - baz.utils <- baz.three.green
+    - baz.three.blue <- baz.two
