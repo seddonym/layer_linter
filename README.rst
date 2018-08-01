@@ -76,6 +76,32 @@ If your code violates the contract, you will see an error message as follows:
 
 .. code-block:: none
 
+    ============
+    Layer Linter
+    ============
+
+    ---------
+    Contracts
+    ---------
+
+    Analyzed 23 files, 44 dependencies.
+    -----------------------------------
+
+    My layer contract BROKEN
+
     Contracts: 0 kept, 1 broken.
-    - Broken contract My Layers Contract:
-      - myproject.packagetwo.mediumlevelmodule not allowed to import myproject.packagetwo.highlevelmodule.
+
+    ----------------
+    Broken contracts
+    ----------------
+
+
+    My layer contract
+    -----------------
+
+
+    1. myproject.packagetwo.lowlevelmodule imports myproject.packagetwo.highlevelmodule:
+
+        myproject.packagetwo.lowlevelmodule <-
+        myproject.utils <-
+        myproject.packagetwo.highlevelmodule
