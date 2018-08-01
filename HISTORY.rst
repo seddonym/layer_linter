@@ -26,8 +26,8 @@ History
 * Removed illegal dependencies that were implied by other, more succinct illegal dependencies.
 * Added ``--debug`` command line argument.
 
-latest
-------
+0.5.0 (2018-08-01)
+------------------
 
 * Added count of analysed files and dependencies to report.
 * Fixed issues from running command in a different directory to the package.
