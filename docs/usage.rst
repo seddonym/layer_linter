@@ -46,7 +46,7 @@ Running this will check that your project adheres to the contracts in your ``lay
 
 - Optional arguments:
 
-    - ``--config_directory``: The directory containing your ``layers.yaml``. If not
+    - ``--config-directory``: The directory containing your ``layers.yaml``. If not
       supplied, Layer Linter will look in the current directory.
     - ``--debug``: Output debug messages when running the linter. No parameters required.
 
