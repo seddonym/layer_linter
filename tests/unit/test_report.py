@@ -307,7 +307,7 @@ class TestConsolePrinter:
         if whitelisted_path_length:
             click.secho.assert_has_calls([
                 call('Foo ', nl=False),
-                call('({} whitelisted paths)'.format(whitelisted_path_length), nl=False),
+                call('({} whitelisted paths) '.format(whitelisted_path_length), nl=False),
                 call(expected_label, fg=expected_color, bold=True)
             ])
         else:
