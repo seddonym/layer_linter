@@ -1,10 +1,14 @@
 import argparse
 import os
+import sys
 import logging
 
 from .dependencies import get_dependencies
 from .contract import get_contracts, ContractParseError
 from .report import Report
+
+
+logger = logging.getLogger(__name__)
 
 
 def create_parser():
@@ -45,9 +49,14 @@ def _main(package_name, config_directory=None, is_debug=False):
     if is_debug:
         logging.basicConfig(level=logging.DEBUG)
 
+    # Add current directory to the path, as this doesn't happen automatically.
+    sys.path.insert(0, os.getcwd())
+
     try:
         package = __import__(package_name)
-    except ImportError:
+    except ImportError as e:
+        logger.debug(e)
+        logger.debug("sys.path: {}".format(sys.path))
         exit("Could not find package '{}' in your path.".format(package_name))
 
     if config_directory is None:
