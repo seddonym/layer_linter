@@ -34,7 +34,8 @@ History
 * Increased speed of analysis.
 * Changed ``--config_directory`` command line argument to ``--config-directory``.
 
-latest
-------
+0.6.0 (2018-08-07)
+------------------
 
 * Added ability to whitelist paths.
+
