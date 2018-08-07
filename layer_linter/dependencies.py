@@ -48,6 +48,31 @@ class InternalModuleFinder(PydepsModuleFinder):
         return super().load_module(fqname, fp, pathname, file_info)
 
 
+class ImportPath:
+    """
+    A direct dependency path between two modules. For example,
+    if foo imports bar.baz, then the ImportPath is:
+        ImportPath(
+            importer='foo',
+            imported='bar.baz'
+        )
+    """
+    def __init__(self, importer, imported):
+        """
+        Args:
+            importer (str): Absolute name of importing module.
+            imported (str): Absolute name of module imported by importer.
+        """
+        self.importer = importer
+        self.imported = imported
+
+    def __str__(self):
+        return "{} <- {}".format(self.importer, self.imported)
+
+    def __repr__(self):
+        return '<{}: {}>'.format(self.__class__.__name__, self)
+
+
 class IllegalModuleName(Exception):
     pass
 
@@ -163,16 +188,22 @@ class DependencyGraph:
                 continue
             for upstream_module in imported_modules:
                 if upstream_module.startswith(self.package_name):
-                    self._networkx_graph.add_edge(module_name, upstream_module)
+                    self._add_path_to_networkx_graph(
+                        ImportPath(
+                            importer=module_name,
+                            imported=upstream_module,
+                        )
+                    )
                     self.dependency_count += 1
-                    logger.debug("Added edge from '{}' to '{}'.".format(
-                        module_name, upstream_module))
 
-    def find_path(self, downstream, upstream):
+    def find_path(self, downstream, upstream, ignore_paths=None):
         """
         Args:
-            downstream (string) - absolute name of module.
-            upstream (string)- absolute name of module.
+            downstream (string):                 Absolute name of module.
+            upstream (string)                    Absolute name of module.
+            ignore_paths
+                (list of ImportPaths, optional): List of the paths that should not be considered.
+
         Returns:
             List of module names showing the dependency path between
             the downstream and the upstream module, or None if there
@@ -186,13 +217,21 @@ class DependencyGraph:
                   gamma, which imports beta, which imports alpha.
         """
         logger.debug("Finding path from '{}' up to '{}'.".format(downstream, upstream))
+        ignore_paths = ignore_paths if ignore_paths else []
+
+        removed_paths = self._remove_paths_from_networkx_graph(ignore_paths)
+
         try:
             path = shortest_path(self._networkx_graph, downstream, upstream)
         except (networkx.NetworkXNoPath, networkx.exception.NodeNotFound):
             # Either there is no path, or one of the modules doesn't even exist.
-            return None
+            path = None
         else:
-            return tuple(path)
+            path = tuple(path)
+
+        self._restore_paths_to_networkx_graph(removed_paths)
+
+        return path
 
     def get_descendants(self, module):
         """
@@ -206,3 +245,33 @@ class DependencyGraph:
             if candidate.startswith('{}.'.format(module)):
                 descendants.append(candidate)
         return descendants
+
+    def _add_path_to_networkx_graph(self, import_path):
+        self._networkx_graph.add_edge(import_path.importer, import_path.imported)
+
+    def _remove_path_from_networkx_graph(self, import_path):
+        self._networkx_graph.remove_edge(import_path.importer, import_path.imported)
+
+    def _import_path_is_in_networkx_graph(self, import_path):
+        return self._networkx_graph.has_successor(
+            import_path.importer, import_path.imported
+        )
+
+    def _remove_paths_from_networkx_graph(self, import_paths):
+        """
+        Given a list of ImportPaths, remove any that exist from the graph.
+
+        Returns:
+             List of removed ImportPaths.
+        """
+        removed_paths = []
+        for import_path in import_paths:
+            if self._import_path_is_in_networkx_graph(import_path):
+                self._remove_path_from_networkx_graph(import_path)
+                removed_paths.append(import_path)
+        return removed_paths
+
+    def _restore_paths_to_networkx_graph(self, import_paths):
+        for import_path in import_paths:
+            self._add_path_to_networkx_graph(import_path)
+

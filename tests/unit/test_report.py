@@ -291,18 +291,27 @@ class TestConsolePrinter:
         click.echo.assert_called_once_with()
 
     @pytest.mark.parametrize(
-        'is_kept,expected_label,expected_color', [
-            (True, 'KEPT', 'green'),
-            (False, 'BROKEN', 'red'),
+        'is_kept,whitelisted_path_length,expected_label,expected_color', [
+            (True, 4, 'KEPT', 'green'),
+            (False, 0, 'BROKEN', 'red'),
         ])
-    def test_print_contract_one_liner(self, click, is_kept,
+    def test_print_contract_one_liner(self, click, is_kept, whitelisted_path_length,
                                       expected_label, expected_color):
-        contract = MagicMock()
+        contract = MagicMock(
+            whitelisted_paths=[MagicMock()] * whitelisted_path_length
+        )
         contract.__str__.return_value = 'Foo'
 
         ConsolePrinter.print_contract_one_liner(contract, is_kept)
 
-        click.secho.assert_has_calls([
-            call('Foo ', nl=False),
-            call(expected_label, fg=expected_color, bold=True)
-        ])
+        if whitelisted_path_length:
+            click.secho.assert_has_calls([
+                call('Foo ', nl=False),
+                call('({} whitelisted paths)'.format(whitelisted_path_length), nl=False),
+                call(expected_label, fg=expected_color, bold=True)
+            ])
+        else:
+            click.secho.assert_has_calls([
+                call('Foo ', nl=False),
+                call(expected_label, fg=expected_color, bold=True)
+            ])

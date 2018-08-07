@@ -5,6 +5,8 @@ High level:
     - three
     - two
     - one
+  whitelisted_paths:
+    - successpackage.utils <- successpackage.three
 
 Modular:
   packages:

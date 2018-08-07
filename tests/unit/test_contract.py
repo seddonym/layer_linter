@@ -1,5 +1,7 @@
-from unittest import mock, skip
+from unittest import mock
 import pytest
+from layer_linter import contract
+from layer_linter.dependencies import ImportPath
 from layer_linter.contract import Contract, Layer
 import logging
 import sys
@@ -7,6 +9,7 @@ import sys
 logger = logging.getLogger('layer_linter')
 logging.getLogger('pydeps').setLevel(logging.ERROR)
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
 
 class TestContractCheck:
     def test_kept_contract(self):
@@ -20,6 +23,7 @@ class TestContractCheck:
                 Layer('two'),
                 Layer('one'),
             ),
+            whitelisted_paths=mock.sentinel.whitelisted_paths,
         )
         dep_graph = mock.Mock()
         dep_graph.find_path.return_value = None
@@ -31,9 +35,12 @@ class TestContractCheck:
 
         # Check that each of the possible disallowed imports were checked
         dep_graph.find_path.assert_has_calls((
-            mock.call(downstream='foo.one', upstream='foo.two'),
-            mock.call(downstream='foo.one', upstream='foo.three'),
-            mock.call(downstream='foo.two', upstream='foo.three'),
+            mock.call(downstream='foo.one', upstream='foo.two',
+                      ignore_paths=mock.sentinel.whitelisted_paths),
+            mock.call(downstream='foo.one', upstream='foo.three',
+                      ignore_paths=mock.sentinel.whitelisted_paths),
+            mock.call(downstream='foo.two', upstream='foo.three',
+                      ignore_paths=mock.sentinel.whitelisted_paths),
         ))
 
     def test_broken_contract(self):
@@ -64,9 +71,12 @@ class TestContractCheck:
 
         # Check that each of the possible disallowed imports are checked
         dep_graph.find_path.assert_has_calls((
-            mock.call(downstream='foo.one', upstream='foo.two'),
-            mock.call(downstream='foo.one', upstream='foo.three'),
-            mock.call(downstream='foo.two', upstream='foo.three'),
+            mock.call(downstream='foo.one', upstream='foo.two',
+                      ignore_paths=[]),
+            mock.call(downstream='foo.one', upstream='foo.three',
+                      ignore_paths=[]),
+            mock.call(downstream='foo.two', upstream='foo.three',
+                      ignore_paths=[]),
         ))
 
     def test_unchecked_contract_raises_exception(self):
@@ -120,11 +130,16 @@ class TestContractCheck:
 
         # Check that each of the possible disallowed imports are checked
         dep_graph.find_path.assert_has_calls((
-            mock.call(downstream='foo.one', upstream='foo.two'),
-            mock.call(downstream='foo.one.alpha', upstream='foo.two'),
-            mock.call(downstream='foo.one.alpha.red', upstream='foo.two'),
-            mock.call(downstream='foo.one.alpha.green', upstream='foo.two'),
-            mock.call(downstream='foo.one.beta', upstream='foo.two'),
+            mock.call(downstream='foo.one', upstream='foo.two',
+                      ignore_paths=[]),
+            mock.call(downstream='foo.one.alpha', upstream='foo.two',
+                      ignore_paths=[]),
+            mock.call(downstream='foo.one.alpha.red', upstream='foo.two',
+                      ignore_paths=[]),
+            mock.call(downstream='foo.one.alpha.green', upstream='foo.two',
+                      ignore_paths=[]),
+            mock.call(downstream='foo.one.beta', upstream='foo.two',
+                      ignore_paths=[]),
         ))
 
     def test_broken_contract_via_other_layer(self):
@@ -181,18 +196,23 @@ class TestContractCheck:
         # the more direct violation (the second one in this case).
         if longer_first:
             dep_graph.find_path.side_effect = [
+                # foo.one <- foo.two
                 None,
-                ['foo.one.alpha', 'foo.one.alpha.green', 'foo.x.alpha', 'foo.three'],
-                ['foo.one.alpha.red', 'foo.one.alpha.green', 'foo.x.alpha', 'foo.three'],
-                ['foo.one.alpha.green', 'foo.x.alpha', 'foo.three'],
+                # foo.one.alpha <- foo.two
+                ['foo.one.alpha', 'foo.one.alpha.green', 'foo.x.alpha', 'foo.two'],
+                # foo.one.alpha.red <- foo.two
+                ['foo.one.alpha.red', 'foo.one.alpha.green', 'foo.x.alpha', 'foo.two'],
+                # foo.one.alhpa.green <- foo.two
+                ['foo.one.alpha.green', 'foo.x.alpha', 'foo.two'],
+                # foo.one.beta <- foo.two
                 None,
             ]
         else:
             dep_graph.find_path.side_effect = [
                 None,
-                ['foo.one.alpha', 'foo.x.alpha', 'foo.three'],
+                ['foo.one.alpha', 'foo.x.alpha', 'foo.two'],
                 None,
-                ['foo.one.alpha.green', 'foo.one.alpha', 'foo.x.alpha', 'foo.three'],
+                ['foo.one.alpha.green', 'foo.one.alpha', 'foo.x.alpha', 'foo.two'],
                 None,
             ]
 
@@ -200,9 +220,26 @@ class TestContractCheck:
 
         if longer_first:
             assert contract.illegal_dependencies == [
-                ['foo.one.alpha.green', 'foo.x.alpha', 'foo.three'],
+                ['foo.one.alpha.green', 'foo.x.alpha', 'foo.two'],
             ]
         else:
             assert contract.illegal_dependencies == [
-                ['foo.one.alpha', 'foo.x.alpha', 'foo.three'],
+                ['foo.one.alpha', 'foo.x.alpha', 'foo.two'],
             ]
+
+
+class TestContractFromYAML:
+    def test_incorrect_whitelisted_path_format(self):
+        data = {
+            'layers': ['one', 'two'],
+            'whitelisted_paths': [
+                'not the right format',
+            ]
+        }
+
+        with pytest.raises(ValueError) as exception:
+            contract.contract_from_yaml('Contract Foo', data)
+        assert str(exception.value) == (
+            'Whitelisted paths must be in the format '
+            '"importer.module <- imported.module".'
+        )
