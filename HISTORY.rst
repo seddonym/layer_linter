@@ -39,3 +39,8 @@ History
 
 * Added ability to whitelist paths.
 
+0.6.1 (2018-08-07)
+------------------
+
+* Add current working directory to path.
+
