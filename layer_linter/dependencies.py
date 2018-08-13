@@ -1,7 +1,7 @@
 import logging
 from keyword import iskeyword
 from pydeps.py2depgraph import (
-    MyModuleFinder as PydepsModuleFinder, is_module,
+    MyModuleFinder as PydepsModuleFinder,
     pysource as is_python_file)
 import networkx
 from networkx.algorithms import shortest_path
@@ -133,8 +133,10 @@ class DependencyGraph:
             Generator of Python file names.
         """
         for root, dirs, files in os.walk(directory):
-            # Don't include directories that aren't Python packages.
+            # Don't include directories that aren't Python packages,
+            # nor their subdirectories.
             if '__init__.py' not in files:
+                [dirs.remove(d) for d in list(dirs)]
                 continue
             # Don't include hidden directories.
             dotdirs = [d for d in dirs if d.startswith('.')]
