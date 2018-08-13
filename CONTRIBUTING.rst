@@ -12,10 +12,10 @@ You can contribute in many ways:
 Types of Contributions
 ----------------------
 
-Report Bugs
+ContractAdherenceReport Bugs
 ~~~~~~~~~~~
 
-Report bugs at https://github.com/seddonym/layer_linter/issues.
+ContractAdherenceReport bugs at https://github.com/seddonym/layer_linter/issues.
 
 If you are reporting a bug, please include:
 

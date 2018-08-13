@@ -3,7 +3,7 @@ import pytest
 
 from layer_linter.contract import Contract
 from layer_linter import report
-from layer_linter.report import Report, ConsolePrinter
+from layer_linter.report import ContractAdherenceReport, ConsolePrinter
 
 
 @pytest.fixture
@@ -32,9 +32,9 @@ def make_broken_contract():
 class TestReport:
     def _report_contracts(self, contracts):
         """
-        Report on the supplied list of Contracts.
+        ContractAdherenceReport on the supplied list of Contracts.
         """
-        self.report = Report(dependencies=MagicMock())
+        self.report = ContractAdherenceReport(dependencies=MagicMock())
 
         for contract in contracts:
             self.report.add_contract(contract)

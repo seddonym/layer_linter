@@ -135,3 +135,17 @@ class TestDependencyGraph:
             ignore_paths=ignore_paths)
 
         assert path is None
+
+    @pytest.mark.parametrize('module_name',
+        (
+            'foo.bar-bar.baz',
+            'foo.class.baz',
+        )
+    def test_invalid_module_name(self, module_name):
+        assert False
+
+    def test_syntax_error(self):
+        assert False
+
+    def test_modules_not_in_python_package(self):
+        assert False

@@ -1,7 +1,7 @@
 import click
 
 
-class Report:
+class ContractAdherenceReport:
     def __init__(self, dependencies):
         self.dependencies = dependencies
         self.kept_contracts = []
@@ -70,6 +70,26 @@ class Report:
                     ConsolePrinter.indent_cursor()
                     ConsolePrinter.print_error(error_text, bold=False)
                 ConsolePrinter.new_line()
+
+    def _print_bad_modules(self):
+        ConsolePrinter.print_error('The following files could not be imported:')
+        ConsolePrinter.new_line()
+        for module_name in self.dependencies.bad_modules:
+            ConsolePrinter.indent_cursor()
+            ConsolePrinter.print_error('- {}'.format(module_name))
+
+
+class DependencyFailureReport:
+    def __init__(self, exception):
+        self.exception = exception
+
+    def output(self):
+        ConsolePrinter.print_heading(
+            'Failed to build the dependency graph due to the following errors:',
+            ConsolePrinter.HEADING_LEVEL_THREE, style=ConsolePrinter.ERROR)
+        for error in self.exception.errors:
+            ConsolePrinter.indent_cursor()
+            ConsolePrinter.print_error('- {}'.format(error)))
 
 
 class ConsolePrinter:

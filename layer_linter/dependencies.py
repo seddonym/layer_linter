@@ -15,6 +15,11 @@ def get_dependencies(package_name):
     return DependencyGraph(package_name)
 
 
+class CouldNotBuildDependencyGraph(Exception):
+    def __init__(self):
+        self.errors = []
+
+
 class InternalModuleFinder(PydepsModuleFinder):
     """
     Analyses the internal dependencies for a Python package.
@@ -74,7 +79,8 @@ class ImportPath:
 
 
 class IllegalModuleName(Exception):
-    pass
+    def __init__(self, module_name):
+        self.module_name = module_name
 
 
 class DependencyGraph:
@@ -94,6 +100,7 @@ class DependencyGraph:
         path = sys.path[:]
         path.insert(0, os.path.dirname(dummy_module_filename))
 
+        # TODO - use ModuleFinder that doesn't swallow exceptions.
         finder = InternalModuleFinder(package=self.package)
         finder.run_script(dummy_module_filename)
 
@@ -101,7 +108,6 @@ class DependencyGraph:
         os.unlink(dummy_module_filename)
 
         self._sources = finder._depgraph
-
         return self._sources
 
     def _create_dummy_module(self):
@@ -114,13 +120,16 @@ class DependencyGraph:
         # Below causes problems with external python packages
         package_directory = os.path.dirname(self.package.__file__)
 
+        illegal_module_names = []
+
         with open(dummy_module_filename, 'w') as dummy_file:
             for module_filename in self._get_python_files_inside_package(package_directory):
                 try:
                     module_name = self._module_name_from_filename(module_filename,
                                                                   package_directory)
-                except IllegalModuleName:
+                except IllegalModuleName as e:
                     logger.debug('Skipped illegal module {}.'.format(module_filename))
+                    illegal_module_names.append(e.module_name)
                     continue
                 self._write_import_to_file(dummy_file, module_name)
 
@@ -162,9 +171,10 @@ class DependencyGraph:
         components = [package_name] + internal_filename_and_path_without_extension.split('/')
         if components[-1] == '__init__':
             components.pop()
+        module_name = '.'.join(components)
         if any(map(iskeyword, components)):
-            raise IllegalModuleName
-        return '.'.join(components)
+            raise IllegalModuleName(module_name)
+        return module_name
 
     def _write_import_to_file(self, fp, module):
         if 'migrations' in module:

@@ -1,0 +1,19 @@
+High level:
+  packages:
+    - importerrorpackage
+  layers:
+    - three
+    - two
+    - one
+  whitelisted_paths:
+    - importerrorpackage.utils <- importerrorpackage.three
+
+Modular:
+  packages:
+    - importerrorpackage.one
+    - importerrorpackage.two
+    - importerrorpackage.three
+  layers:
+    - gamma
+    - beta
+    - alpha
