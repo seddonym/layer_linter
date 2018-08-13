@@ -44,3 +44,7 @@ History
 
 * Add current working directory to path.
 
+latest
+------
+
+* Don't analyse children of directories that aren't Python packages.
