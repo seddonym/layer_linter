@@ -1,7 +1,7 @@
 import click
 
 
-class Report:
+class ContractAdherenceReport:
     def __init__(self, dependencies):
         self.dependencies = dependencies
         self.kept_contracts = []
@@ -70,6 +70,14 @@ class Report:
                     ConsolePrinter.indent_cursor()
                     ConsolePrinter.print_error(error_text, bold=False)
                 ConsolePrinter.new_line()
+
+
+class InvalidDependenciesReport:
+    def __init__(self, exception):
+        self.exception = exception
+
+    def output(self):
+        ...
 
 
 class ConsolePrinter:

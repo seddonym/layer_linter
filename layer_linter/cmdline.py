@@ -3,9 +3,9 @@ import os
 import sys
 import logging
 
-from .dependencies import get_dependencies
+from .dependencies import get_dependencies, InvalidDependencies
 from .contract import get_contracts, ContractParseError
-from .report import Report
+from .reports import ContractAdherenceReport, InvalidDependenciesReport
 
 
 logger = logging.getLogger(__name__)
@@ -68,9 +68,14 @@ def _main(package_name, config_directory=None, is_debug=False):
     except ContractParseError as e:
         exit('Error: {}'.format(e))
 
-    dependencies = get_dependencies(package)
+    try:
+        dependencies = get_dependencies(package)
+    except InvalidDependencies as e:
+        report = InvalidDependenciesReport(e)
+        report.output()
+        return 1  # Fail
 
-    report = Report(dependencies)
+    report = ContractAdherenceReport(dependencies)
     for contract in contracts:
         contract.check_dependencies(dependencies)
         report.add_contract(contract)

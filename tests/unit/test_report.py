@@ -2,8 +2,8 @@ from unittest.mock import MagicMock, patch, call, sentinel
 import pytest
 
 from layer_linter.contract import Contract
-from layer_linter import report
-from layer_linter.report import Report, ConsolePrinter
+from layer_linter import reports
+from layer_linter.reports import ContractAdherenceReport, ConsolePrinter
 
 
 @pytest.fixture
@@ -28,13 +28,13 @@ def make_broken_contract():
     return _make_contract
 
 
-@patch.object(report, 'ConsolePrinter')
+@patch.object(reports, 'ConsolePrinter')
 class TestReport:
     def _report_contracts(self, contracts):
         """
-        Report on the supplied list of Contracts.
+        ContractAdherenceReport on the supplied list of Contracts.
         """
-        self.report = Report(dependencies=MagicMock())
+        self.report = ContractAdherenceReport(dependencies=MagicMock())
 
         for contract in contracts:
             self.report.add_contract(contract)
@@ -224,7 +224,7 @@ class TestReport:
         assert self.report.has_broken_contracts is True
 
 
-@patch.object(report, 'click')
+@patch.object(reports, 'click')
 class TestConsolePrinter:
     @pytest.mark.parametrize('style,expected_color', [
         (None, None),

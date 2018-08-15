@@ -7,7 +7,6 @@ import logging
 import sys
 
 logger = logging.getLogger('layer_linter')
-logging.getLogger('pydeps').setLevel(logging.ERROR)
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 

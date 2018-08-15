@@ -5,7 +5,7 @@ import sys
 
 def test_get_dependencies():
     dirname = os.path.dirname(__file__)
-    path = os.path.abspath(os.path.join(dirname, '..', 'assets'))
+    path = os.path.abspath(os.path.join(dirname, '..', '..', 'assets'))
 
     sys.path.append(path)
 
@@ -34,7 +34,7 @@ def test_get_dependencies():
 
     assert dependencies.find_path(
         upstream=MODULE_TWO,
-        downstream=MODULE_ONE) == None
+        downstream=MODULE_ONE) is None
 
     assert dependencies.find_path(
         upstream=MODULE_ONE,
@@ -48,3 +48,31 @@ def test_get_dependencies():
     assert dependencies.find_path(
         upstream=SUBSUBMODULE_ONE,
         downstream=SUBSUBMODULE_THREE) == (SUBSUBMODULE_THREE, SUBSUBMODULE_TWO, SUBSUBMODULE_ONE)
+
+    # Module count should be 13 (running total in square brackets):
+    # - dependenciespackage [1]
+    #   - one [2]
+    #   - two [3]
+    #   - three [4]
+    #   - four [5]
+    #   - .hidden [X]
+    #   - migrations [X]
+    #   - subpackage [6]
+    #     - one [7]
+    #     - two [8]
+    #     - three [9]
+    #     - is [X]
+    #     - subsubpackage [10]
+    #       - one [11]
+    #       - two [12]
+    #       - three [13]
+    assert dependencies.module_count == 13
+    # Dependency count should be 7:
+    # dependenciespackage.two <- dependenciespackage.one
+    # dependenciespackage.three <- dependenciespackage.two
+    # dependenciespackage.four <- dependenciespackage.three
+    # dependenciespackage.subpackage.two <- dependenciespackage.subpackage.one
+    # dependenciespackage.subpackage.three <- dependenciespackage.subpackage.two
+    # dependenciespackage.subpackage.subsubpackage.two <- dependenciespackage.subpackage.subsubpackage.one
+    # dependenciespackage.subpackage.subsubpackage.three <- dependenciespackage.subpackage.subsubpackage.two
+    assert dependencies.dependency_count == 7
