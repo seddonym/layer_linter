@@ -44,7 +44,8 @@ History
 
 * Add current working directory to path.
 
-latest
-------
+0.6.2 (2018-08-17)
+------------------
 
 * Don't analyse children of directories that aren't Python packages.
+* Prevented installing incompatible version of Pydeps (1.6).
