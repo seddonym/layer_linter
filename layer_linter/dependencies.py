@@ -32,8 +32,8 @@ class InternalModuleFinder(PydepsModuleFinder):
     Finally you can access a dictionary containing all the import information for each imported
     module:
          depgraph = finder._depgraph
-     This is very much an interim approach, leveraging the work of the Pydeps package. At some point
-    we should simplify this, which will probably remove the need for Pydeps as a dependency.
+    This is very much an interim approach, leveraging the work of the Pydeps package. At some
+    point we should simplify this, which will probably remove the need for Pydeps as a dependency.
     We can probably use modulefinder.ModuleFinder from the standard library.
     """
     def __init__(self, *args, package, **kwargs):
@@ -155,7 +155,8 @@ class DependencyGraph:
             Absolute module name for importing (string).
         """
         if not filename_and_path.startswith(package_directory):
-            raise ValueError('Filename and path should be in the package directory.')  # pragma: no cover
+            raise ValueError(
+                'Filename and path should be in the package directory.')  # pragma: no cover
         if not filename_and_path[-3:] == '.py':
             raise ValueError('Filename is not a Python file.')  # pragma: no cover
         container_directory, package_name = os.path.split(package_directory)
@@ -276,4 +277,3 @@ class DependencyGraph:
     def _restore_paths_to_networkx_graph(self, import_paths):
         for import_path in import_paths:
             self._add_path_to_networkx_graph(import_path)
-
