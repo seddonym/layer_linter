@@ -1,7 +1,10 @@
+from typing import List
 import os
 import logging
 
 from keyword import iskeyword
+
+from ..module import Module
 
 
 logger = logging.getLogger(__name__)
@@ -15,7 +18,7 @@ class PackageScanner:
     def __init__(self, package):
         self.package = package
 
-    def scan_for_modules(self):
+    def scan_for_modules(self) -> List[Module]:
         """
         Returns:
             List of module names (list(str, ...)).
@@ -25,13 +28,15 @@ class PackageScanner:
         """
         package_directory = os.path.dirname(self.package.__file__)
         modules = []
-        self.illegal_module_filenames = []
+        self.illegal_module_filenames: List[str] = []
 
         for module_filename in self._get_python_files_inside_package(package_directory):
             try:
                 module_name = self._module_name_from_filename(module_filename,
                                                               package_directory)
-                modules.append(module_name)
+                module = Module(module_name)
+                module.store_filename(module_filename)
+                modules.append(module)
             except IllegalModuleName:
                 self.illegal_module_filenames.append(module_filename)
                 logger.debug('Skipped illegal module {}.'.format(module_filename))
@@ -62,7 +67,7 @@ class PackageScanner:
                 if self._is_python_file(filename):
                     yield os.path.join(root, filename)
 
-    def _should_ignore_dir(self, directory):
+    def _should_ignore_dir(self, directory: str) -> bool:
         # TODO: make this configurable.
         # Skip adding directories that are hidden, or look like Django migrations.
         return directory.startswith('.') or directory == 'migrations'
@@ -78,7 +83,7 @@ class PackageScanner:
         """
         return not filename.startswith('.') and filename.endswith('.py')
 
-    def _module_name_from_filename(self, filename_and_path, package_directory):
+    def _module_name_from_filename(self, filename_and_path: str, package_directory: str) -> str:
         """
         Args:
             filename_and_path (string) - the full name of the Python file.

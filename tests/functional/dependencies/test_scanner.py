@@ -4,6 +4,7 @@ import sys
 import pytest
 
 from layer_linter.dependencies.scanner import PackageScanner
+from layer_linter.module import Module
 
 
 class TestPackageScanner:
@@ -17,7 +18,7 @@ class TestPackageScanner:
 
         scanner = PackageScanner(package)
 
-        expected_modules = [
+        expected_modules = map(Module, [
             'scannersuccess',
             'scannersuccess.one',
             'scannersuccess.one.alpha',
@@ -31,7 +32,7 @@ class TestPackageScanner:
             'scannersuccess.two.beta',
             'scannersuccess.two.gamma',
             'scannersuccess.four',
-        ]
+        ])
 
         modules = scanner.scan_for_modules()
 

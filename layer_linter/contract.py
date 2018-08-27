@@ -4,6 +4,7 @@ import logging
 from copy import copy
 
 from .dependencies import ImportPath
+from .module import Module
 
 
 logger = logging.getLogger(__name__)
@@ -75,7 +76,7 @@ class Contract:
             List of modules names within that layer, including the layer module itself.
             Includes grandchildren and deeper.
         """
-        layer_module = "{}.{}".format(package, layer.name)
+        layer_module = Module("{}.{}".format(package, layer.name))
         modules = [layer_module]
         modules.extend(
             dependencies.get_descendants(layer_module)

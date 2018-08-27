@@ -64,7 +64,7 @@ class ContractAdherenceReport:
                 ConsolePrinter.new_line()
 
                 for dep_index, item in enumerate(illegal_dependency):
-                    error_text = item
+                    error_text = str(item)
                     if dep_index < len(illegal_dependency) - 1:
                         error_text += ' <-'
                     ConsolePrinter.indent_cursor()

@@ -1,6 +1,9 @@
 from layer_linter.dependencies import get_dependencies
+from layer_linter.module import Module
 import os
 import sys
+
+import pytest
 
 
 def test_get_dependencies():
@@ -10,20 +13,20 @@ def test_get_dependencies():
     sys.path.append(path)
 
     ROOT_PACKAGE = 'dependenciespackage'
-    MODULE_ONE = "{}.one".format(ROOT_PACKAGE)
-    MODULE_TWO = "{}.two".format(ROOT_PACKAGE)
-    MODULE_THREE = "{}.three".format(ROOT_PACKAGE)
-    MODULE_FOUR = "{}.four".format(ROOT_PACKAGE)
+    MODULE_ONE = Module("{}.one".format(ROOT_PACKAGE))
+    MODULE_TWO = Module("{}.two".format(ROOT_PACKAGE))
+    MODULE_THREE = Module("{}.three".format(ROOT_PACKAGE))
+    MODULE_FOUR = Module("{}.four".format(ROOT_PACKAGE))
 
     SUBPACKAGE = 'subpackage'
-    SUBMODULE_ONE = "{}.{}.one".format(ROOT_PACKAGE, SUBPACKAGE)
-    SUBMODULE_TWO = "{}.{}.two".format(ROOT_PACKAGE, SUBPACKAGE)
-    SUBMODULE_THREE = "{}.{}.three".format(ROOT_PACKAGE, SUBPACKAGE)
+    SUBMODULE_ONE = Module("{}.{}.one".format(ROOT_PACKAGE, SUBPACKAGE))
+    SUBMODULE_TWO = Module("{}.{}.two".format(ROOT_PACKAGE, SUBPACKAGE))
+    SUBMODULE_THREE = Module("{}.{}.three".format(ROOT_PACKAGE, SUBPACKAGE))
 
     SUBSUBPACKAGE = 'subsubpackage'
-    SUBSUBMODULE_ONE = "{}.{}.{}.one".format(ROOT_PACKAGE, SUBPACKAGE, SUBSUBPACKAGE)
-    SUBSUBMODULE_TWO = "{}.{}.{}.two".format(ROOT_PACKAGE, SUBPACKAGE, SUBSUBPACKAGE)
-    SUBSUBMODULE_THREE = "{}.{}.{}.three".format(ROOT_PACKAGE, SUBPACKAGE, SUBSUBPACKAGE)
+    SUBSUBMODULE_ONE = Module("{}.{}.{}.one".format(ROOT_PACKAGE, SUBPACKAGE, SUBSUBPACKAGE))
+    SUBSUBMODULE_TWO = Module("{}.{}.{}.two".format(ROOT_PACKAGE, SUBPACKAGE, SUBSUBPACKAGE))
+    SUBSUBMODULE_THREE = Module("{}.{}.{}.three".format(ROOT_PACKAGE, SUBPACKAGE, SUBSUBPACKAGE))
 
     root_package = __import__(ROOT_PACKAGE)
     dependencies = get_dependencies(root_package)

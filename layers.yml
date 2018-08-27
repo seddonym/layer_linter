@@ -3,6 +3,16 @@ Layer Linter architecture:
     - layer_linter
   layers:
     - cmdline
-    - report
+    - reports
     - contract
     - dependencies
+    - module
+
+Dependencies subpackage:
+    packages:
+        - layer_linter.dependencies
+    layers:
+        - graph
+        - analysis
+        - scanner
+        - path

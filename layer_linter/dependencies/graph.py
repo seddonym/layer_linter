@@ -1,7 +1,9 @@
 import logging
-import networkx
-from networkx.algorithms import shortest_path
+from typing import List
+import networkx  # type: ignore
+from networkx.algorithms import shortest_path  # type: ignore
 
+from ..module import Module
 from .scanner import PackageScanner
 from .analysis import DependencyAnalyzer
 
@@ -41,7 +43,6 @@ class DependencyGraph:
     """
     def __init__(self, package):
         scanner = PackageScanner(package)
-
         self.modules = scanner.scan_for_modules()
 
         self._networkx_graph = networkx.DiGraph()
@@ -50,7 +51,7 @@ class DependencyGraph:
         # TODO include handling of syntax errors, which should be included in
         # a raise of InvalidDependencies - the method we use will determine when this
         # is handled.
-        analyzer = DependencyAnalyzer(modules=self.modules, package=package)
+        analyzer = DependencyAnalyzer(modules=self.modules, package=Module(package.__name__))
         for import_path in analyzer.determine_import_paths():
             self._add_path_to_networkx_graph(import_path)
             self.dependency_count += 1
@@ -94,16 +95,14 @@ class DependencyGraph:
 
         return path
 
-    def get_descendants(self, module):
+    def get_descendants(self, module: Module) -> List[Module]:
         """
-        Args:
-            module (string): absolute name of module.
         Returns:
-            List of modules that are within that module (string).
+            List of modules that are within the supplied module.
         """
         descendants = []
         for candidate in self.modules:
-            if candidate.startswith('{}.'.format(module)):
+            if candidate.name.startswith('{}.'.format(module.name)):
                 descendants.append(candidate)
         return descendants
 
