@@ -1,8 +1,21 @@
 language: python
-python:
-- 3.6
-- 3.5
-- 3.4
+matrix:
+    include:
+    - name: "Python 3.4"
+      python: "3.4"
+      env: TOXENV=py34
+    - name: "Python 3.5"
+      python: "3.5"
+      env: TOXENV=py35
+    - name: "Python 3.6"
+      python: "3.6"
+      env: TOXENV=py36
+    - name: "Flake8"
+      python: "3.6"
+      env: TOXENV=flake8
+    - name: "Layer lint"
+      python: "3.6"
+      env: TOXENV=layer_lint
 install: pip install -U tox-travis
 script: tox
 deploy:
