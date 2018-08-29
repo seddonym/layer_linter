@@ -28,7 +28,10 @@ class ImportPath:
         return '<{}: {}>'.format(self.__class__.__name__, self)
 
     def __eq__(self, other: Any) -> bool:
-        return str(self) == str(other)
+        if isinstance(other, ImportPath):
+            return (self.importer, self.imported) == (other.importer, other.imported)
+        else:
+            return False
 
     def __hash__(self) -> int:
         return hash(str(self))

@@ -1,3 +1,2 @@
-from .graph import get_dependencies, InvalidDependencies
-from .path import ImportPath
-
+from .graph import get_dependencies, DependencyGraph, InvalidDependencies  # noqa: F401
+from .path import ImportPath  # noqa: F401

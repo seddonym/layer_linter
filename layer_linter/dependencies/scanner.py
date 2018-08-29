@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Iterator
 import os
 import logging
 
 from keyword import iskeyword
 
-from ..module import Module
+from ..module import SafeFilenameModule
 
 
 logger = logging.getLogger(__name__)
@@ -15,10 +15,10 @@ class IllegalModuleName(Exception):
 
 
 class PackageScanner:
-    def __init__(self, package):
+    def __init__(self, package: SafeFilenameModule) -> None:
         self.package = package
 
-    def scan_for_modules(self) -> List[Module]:
+    def scan_for_modules(self) -> List[SafeFilenameModule]:
         """
         Returns:
             List of module names (list(str, ...)).
@@ -26,17 +26,17 @@ class PackageScanner:
         Sets illegal_module_filenames as an attribute, that can be accessed to see if there were
         any modules that couldn't be imported due to their filenames being invalid.
         """
-        package_directory = os.path.dirname(self.package.__file__)
-        modules = []
+        package_directory = os.path.dirname(self.package.filename)
+        modules: List[SafeFilenameModule] = []
         self.illegal_module_filenames: List[str] = []
 
         for module_filename in self._get_python_files_inside_package(package_directory):
             try:
                 module_name = self._module_name_from_filename(module_filename,
                                                               package_directory)
-                module = Module(module_name)
-                module.store_filename(module_filename)
-                modules.append(module)
+                modules.append(
+                    SafeFilenameModule(module_name, module_filename)
+                )
             except IllegalModuleName:
                 self.illegal_module_filenames.append(module_filename)
                 logger.debug('Skipped illegal module {}.'.format(module_filename))
@@ -45,7 +45,7 @@ class PackageScanner:
         # TODO raise NoModulesFound?
         return modules
 
-    def _get_python_files_inside_package(self, directory):
+    def _get_python_files_inside_package(self, directory: str) -> Iterator[str]:
         """
         Get a list of Python files within the supplied package directory.
          Return:
@@ -55,7 +55,8 @@ class PackageScanner:
             # Don't include directories that aren't Python packages,
             # nor their subdirectories.
             if '__init__.py' not in files:
-                [dirs.remove(d) for d in list(dirs)]
+                for d in list(dirs):
+                    dirs.remove(d)
                 continue
 
             # Don't include hidden directories.
@@ -72,7 +73,7 @@ class PackageScanner:
         # Skip adding directories that are hidden, or look like Django migrations.
         return directory.startswith('.') or directory == 'migrations'
 
-    def _is_python_file(self, filename):
+    def _is_python_file(self, filename: str) -> bool:
         """
         Given a filename, return whether it's a Python file.
 
@@ -92,9 +93,9 @@ class PackageScanner:
             Absolute module name for importing (string).
         """
         if not filename_and_path.startswith(package_directory):
-            raise ValueError('Filename and path should be in the package directory.')  # pragma: no cover
+            raise ValueError('Filename and path should be in the package directory.')
         if not filename_and_path[-3:] == '.py':
-            raise ValueError('Filename is not a Python file.')  # pragma: no cover
+            raise ValueError('Filename is not a Python file.')
         container_directory, package_name = os.path.split(package_directory)
         internal_filename_and_path = filename_and_path[len(package_directory):]
         internal_filename_and_path_without_extension = internal_filename_and_path[1:-3]

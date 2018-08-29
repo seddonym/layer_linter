@@ -1,9 +1,7 @@
 from layer_linter.dependencies import get_dependencies
-from layer_linter.module import Module
+from layer_linter.module import Module, SafeFilenameModule
 import os
 import sys
-
-import pytest
 
 
 def test_get_dependencies():
@@ -29,7 +27,9 @@ def test_get_dependencies():
     SUBSUBMODULE_THREE = Module("{}.{}.{}.three".format(ROOT_PACKAGE, SUBPACKAGE, SUBSUBPACKAGE))
 
     root_package = __import__(ROOT_PACKAGE)
-    dependencies = get_dependencies(root_package)
+    dependencies = get_dependencies(
+        SafeFilenameModule(name=ROOT_PACKAGE, filename=root_package.__file__)
+    )
 
     assert dependencies.find_path(
         upstream=MODULE_ONE,

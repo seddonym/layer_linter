@@ -1,7 +1,7 @@
 from unittest import mock
 import pytest
 from layer_linter import contract
-from layer_linter.dependencies import ImportPath
+from layer_linter.module import Module
 from layer_linter.contract import Contract, Layer
 import logging
 import sys
@@ -15,7 +15,7 @@ class TestContractCheck:
         contract = Contract(
             name='Foo contract',
             packages=(
-                'foo',
+                Module('foo'),
             ),
             layers=(
                 Layer('three'),
@@ -34,11 +34,11 @@ class TestContractCheck:
 
         # Check that each of the possible disallowed imports were checked
         dep_graph.find_path.assert_has_calls((
-            mock.call(downstream='foo.one', upstream='foo.two',
+            mock.call(downstream=Module('foo.one'), upstream=Module('foo.two'),
                       ignore_paths=mock.sentinel.whitelisted_paths),
-            mock.call(downstream='foo.one', upstream='foo.three',
+            mock.call(downstream=Module('foo.one'), upstream=Module('foo.three'),
                       ignore_paths=mock.sentinel.whitelisted_paths),
-            mock.call(downstream='foo.two', upstream='foo.three',
+            mock.call(downstream=Module('foo.two'), upstream=Module('foo.three'),
                       ignore_paths=mock.sentinel.whitelisted_paths),
         ))
 
@@ -46,7 +46,7 @@ class TestContractCheck:
         contract = Contract(
             name='Foo contract',
             packages=(
-                'foo',
+                Module('foo'),
             ),
             layers=(
                 Layer('three'),
@@ -70,11 +70,11 @@ class TestContractCheck:
 
         # Check that each of the possible disallowed imports are checked
         dep_graph.find_path.assert_has_calls((
-            mock.call(downstream='foo.one', upstream='foo.two',
+            mock.call(downstream=Module('foo.one'), upstream=Module('foo.two'),
                       ignore_paths=[]),
-            mock.call(downstream='foo.one', upstream='foo.three',
+            mock.call(downstream=Module('foo.one'), upstream=Module('foo.three'),
                       ignore_paths=[]),
-            mock.call(downstream='foo.two', upstream='foo.three',
+            mock.call(downstream=Module('foo.two'), upstream=Module('foo.three'),
                       ignore_paths=[]),
         ))
 
@@ -100,7 +100,7 @@ class TestContractCheck:
         contract = Contract(
             name='Foo contract',
             packages=(
-                'foo',
+                Module('foo'),
             ),
             layers=(
                 Layer('two'),
@@ -111,7 +111,8 @@ class TestContractCheck:
         # Mock some deeper submodules
         dep_graph.get_descendants.side_effect = [
             # For foo.one
-            ['foo.one.alpha', 'foo.one.alpha.red', 'foo.one.alpha.green', 'foo.one.beta'],
+            [Module('foo.one.alpha'), Module('foo.one.alpha.red'), Module('foo.one.alpha.green'),
+             Module('foo.one.beta')],
             # For foo.two
             [],
         ]
@@ -129,15 +130,15 @@ class TestContractCheck:
 
         # Check that each of the possible disallowed imports are checked
         dep_graph.find_path.assert_has_calls((
-            mock.call(downstream='foo.one', upstream='foo.two',
+            mock.call(downstream=Module('foo.one'), upstream=Module('foo.two'),
                       ignore_paths=[]),
-            mock.call(downstream='foo.one.alpha', upstream='foo.two',
+            mock.call(downstream=Module('foo.one.alpha'), upstream=Module('foo.two'),
                       ignore_paths=[]),
-            mock.call(downstream='foo.one.alpha.red', upstream='foo.two',
+            mock.call(downstream=Module('foo.one.alpha.red'), upstream=Module('foo.two'),
                       ignore_paths=[]),
-            mock.call(downstream='foo.one.alpha.green', upstream='foo.two',
+            mock.call(downstream=Module('foo.one.alpha.green'), upstream=Module('foo.two'),
                       ignore_paths=[]),
-            mock.call(downstream='foo.one.beta', upstream='foo.two',
+            mock.call(downstream=Module('foo.one.beta'), upstream=Module('foo.two'),
                       ignore_paths=[]),
         ))
 
@@ -201,7 +202,7 @@ class TestContractCheck:
                 ['foo.one.alpha', 'foo.one.alpha.green', 'foo.x.alpha', 'foo.two'],
                 # foo.one.alpha.red <- foo.two
                 ['foo.one.alpha.red', 'foo.one.alpha.green', 'foo.x.alpha', 'foo.two'],
-                # foo.one.alhpa.green <- foo.two
+                # foo.one.alpha.green <- foo.two
                 ['foo.one.alpha.green', 'foo.x.alpha', 'foo.two'],
                 # foo.one.beta <- foo.two
                 None,
@@ -230,6 +231,7 @@ class TestContractCheck:
 class TestContractFromYAML:
     def test_incorrect_whitelisted_path_format(self):
         data = {
+            'packages': ['foo', 'bar'],
             'layers': ['one', 'two'],
             'whitelisted_paths': [
                 'not the right format',

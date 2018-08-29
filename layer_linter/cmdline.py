@@ -2,7 +2,9 @@ import argparse
 import os
 import sys
 import logging
+import importlib
 
+from .module import SafeFilenameModule
 from .dependencies import get_dependencies, InvalidDependencies
 from .contract import get_contracts, ContractParseError
 from .reports import ContractAdherenceReport, InvalidDependenciesReport
@@ -53,7 +55,7 @@ def _main(package_name, config_directory=None, is_debug=False):
     sys.path.insert(0, os.getcwd())
 
     try:
-        package = __import__(package_name)
+        package = importlib.import_module(package_name)
     except ImportError as e:
         logger.debug(e)
         logger.debug("sys.path: {}".format(sys.path))
@@ -69,7 +71,9 @@ def _main(package_name, config_directory=None, is_debug=False):
         exit('Error: {}'.format(e))
 
     try:
-        dependencies = get_dependencies(package)
+        dependencies = get_dependencies(
+            SafeFilenameModule(name=package_name, filename=package.__file__)
+        )
     except InvalidDependencies as e:
         report = InvalidDependenciesReport(e)
         report.output()

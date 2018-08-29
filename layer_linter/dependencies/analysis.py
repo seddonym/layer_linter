@@ -1,13 +1,9 @@
-import sys
-import os
 from typing import List
 import ast
 
 import logging
-from collections import defaultdict
-from modulefinder import ModuleFinder  # type: ignore
 
-from ..module import Module
+from ..module import Module, SafeFilenameModule
 from .path import ImportPath
 
 
@@ -19,14 +15,14 @@ class DependencyAnalyzer:
     Analyzes a set of Python modules for imports between them.
 
     Args:
-        modules: list of Modules.
-        package: Python package that contains all the modules (module).
+        modules: list of all SafeFilenameModules that make up the package.
+        package: tmylpyhe Python package that contains all the modules.
     Usage:
 
         analyzer = DependencyAnalyzer(modules)
         import_paths = analyzer.determine_import_paths()
     """
-    def __init__(self, modules: List[Module], package: Module) -> None:
+    def __init__(self, modules: List[SafeFilenameModule], package: Module) -> None:
         self.modules = modules
         self.package = package
 
@@ -38,7 +34,7 @@ class DependencyAnalyzer:
             )
         return import_paths
 
-    def _get_import_paths(self, module: Module) -> List[ImportPath]:
+    def _get_import_paths(self, module: SafeFilenameModule) -> List[ImportPath]:
         import_paths: List[ImportPath] = []
         imported_modules = self._get_imported_modules(module)
         for imported_module in imported_modules:
@@ -50,10 +46,18 @@ class DependencyAnalyzer:
             )
         return import_paths
 
-    def _get_imported_modules(self, module: Module) -> List[Module]:
+    def _get_imported_modules(self, module: SafeFilenameModule) -> List[Module]:
+        """
+        Statically analyses the given module and returns a list of Modules that it imports.
+
+        Note: this method only analyses the module in question and will not load any other code,
+        so it relies on self.modules to deduce which modules it imports. (This is because you
+        can't know whether "from foo.bar import baz" is importing a module called `baz`,
+        or a function `baz` from the module `bar`.)
+        """
         imported_modules = []
 
-        with open(module.get_filename()) as file:
+        with open(module.filename) as file:
             module_contents = file.read()
 
         ast_tree = ast.parse(module_contents)
