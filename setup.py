@@ -3,7 +3,12 @@
 
 """The setup script."""
 
-from setuptools import setup, find_packages
+try:
+    from py_backwards_packager import setup
+except ImportError:
+    from setuptools import setup
+
+from setuptools import find_packages
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
@@ -18,9 +23,9 @@ requirements = [
     'click>=6.7,<7',
 ]
 
-setup_requirements = ['pytest-runner', ]
+setup_requirements = ['pytest-runner', 'py-backwards-packager']
 
-test_requirements = ['pytest', ]
+test_requirements = ['pytest']
 
 setup(
     author="David Seddon",
@@ -54,4 +59,5 @@ setup(
             'layer-lint = layer_linter.cmdline:main',
         ],
     },
+    py_backwards_targets=['3.4', '3.5']
 )
