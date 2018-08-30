@@ -12,8 +12,13 @@ class TestImportPath:
     def test_equals(self):
         a = ImportPath(importer=Module('foo'), imported=Module('bar'))
         b = ImportPath(importer=Module('foo'), imported=Module('bar'))
+        c = ImportPath(importer=Module('foo'), imported=Module('foo.baz'))
 
         assert a == b
+        assert a != c
+        # Also non-ImportPath instances should not be treated as equal.
+        assert a != 'foo'
+
 
     def test_hash(self):
         a = ImportPath(importer=Module('foo'), imported=Module('bar'))

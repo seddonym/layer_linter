@@ -1,42 +1,69 @@
+from typing import List, Type
+
 import click
 
+from .dependencies import DependencyGraph
+from .contract import Contract
 
-class ContractAdherenceReport:
-    def __init__(self, dependencies):
-        self.dependencies = dependencies
-        self.kept_contracts = []
-        self.broken_contracts = []
+VERBOSITY_QUIET = 0
+VERBOSITY_NORMAL = 1
+VERBOSITY_HIGH = 2
+
+
+def get_report_class(verbosity: int) -> Type['BaseReport']:
+    return {
+        VERBOSITY_QUIET: QuietReport,
+        VERBOSITY_NORMAL: NormalReport,
+        VERBOSITY_HIGH: VerboseReport,
+    }[verbosity]
+
+
+class BaseReport:
+    def __init__(self, graph: DependencyGraph) -> None:
+        self.graph = graph
+        self.kept_contracts: List[Contract] = []
+        self.broken_contracts: List[Contract] = []
         self.has_broken_contracts = False
 
-    def add_contract(self, contract):
+    def add_contract(self, contract: Contract) -> None:
         if contract.is_kept:
             self.kept_contracts.append(contract)
         else:
             self.broken_contracts.append(contract)
             self.has_broken_contracts = True
 
-    def output(self):
+    def output(self) -> None:
+        self._output_title()
+        self._output_contracts_analysis()
+        if self.broken_contracts:
+            self._output_broken_contracts_details()
+
+    def _output_title(self):
         ConsolePrinter.print_heading('Layer Linter', ConsolePrinter.HEADING_LEVEL_ONE)
+
+    def _output_contracts_analysis(self):
         ConsolePrinter.print_heading('Contracts', ConsolePrinter.HEADING_LEVEL_TWO)
 
         ConsolePrinter.print_heading(
             'Analyzed {} files, {} dependencies.'.format(
-                self.dependencies.module_count,
-                self.dependencies.dependency_count,
+                self.graph.module_count,
+                self.graph.dependency_count,
             ), ConsolePrinter.HEADING_LEVEL_THREE)
 
-        if not (self.kept_contracts or self.broken_contracts):
-            ConsolePrinter.print_error('No contracts found.')
-
         for contract in self.kept_contracts:
-            ConsolePrinter.print_contract_one_liner(contract, is_kept=True)
+            self._output_contract_analysis(contract)
 
         for contract in self.broken_contracts:
-            ConsolePrinter.print_contract_one_liner(contract, is_kept=False)
+            self._output_contract_analysis(contract)
 
-        ConsolePrinter.new_line()
+        self._output_contracts_summary()
 
+    def _output_contract_analysis(self, contract):
+        ConsolePrinter.print_contract_one_liner(contract)
+
+    def _output_contracts_summary(self):
         # Print summary line.
+        ConsolePrinter.new_line()
         print_callback = ConsolePrinter.print_error if self.broken_contracts else \
             ConsolePrinter.print_success
         print_callback('Contracts: {} kept, {} broken.'.format(
@@ -45,10 +72,10 @@ class ContractAdherenceReport:
         ))
         ConsolePrinter.new_line()
 
-        if self.broken_contracts:
-            ConsolePrinter.print_heading('Broken contracts', ConsolePrinter.HEADING_LEVEL_TWO,
-                                         style=ConsolePrinter.ERROR)
-            ConsolePrinter.new_line()
+    def _output_broken_contracts_details(self):
+        ConsolePrinter.print_heading('Broken contracts', ConsolePrinter.HEADING_LEVEL_TWO,
+                                                         style=ConsolePrinter.ERROR)
+        ConsolePrinter.new_line()
 
         for broken_contract in self.broken_contracts:
             ConsolePrinter.print_heading(str(broken_contract), ConsolePrinter.HEADING_LEVEL_THREE,
@@ -72,12 +99,41 @@ class ContractAdherenceReport:
                 ConsolePrinter.new_line()
 
 
-class InvalidDependenciesReport:
-    def __init__(self, exception):
-        self.exception = exception
+class NormalReport(BaseReport):
+    pass
 
+
+class QuietReport(NormalReport):
+    """
+    Report that only reports when there is a broken contract.
+    """
+    def output(self) -> None:
+        if self.broken_contracts:
+           super().output()
+
+
+class VerboseReport(BaseReport):
     def output(self):
-        ...
+        self._output_title()
+        self._output_dependencies()
+        self._output_contracts_analysis()
+        if self.broken_contracts:
+            self._output_broken_contracts_details()
+
+    def _output_dependencies(self):
+        ConsolePrinter.print_heading('Dependencies', ConsolePrinter.HEADING_LEVEL_TWO)
+
+        for importer in self.graph.modules:
+            ConsolePrinter.print('{} imports:'.format(importer), bold=True)
+            has_at_least_one_successor = False
+            for imported in self.graph.get_modules_directly_imported_by(importer=importer):
+                has_at_least_one_successor = True
+                ConsolePrinter.indent_cursor()
+                ConsolePrinter.print('- {}'.format(imported))
+            if not has_at_least_one_successor:
+                ConsolePrinter.indent_cursor()
+                ConsolePrinter.print('- (nothing)')
+        ConsolePrinter.new_line()
 
 
 class ConsolePrinter:
@@ -127,6 +183,13 @@ class ConsolePrinter:
         click.echo()
 
     @classmethod
+    def print(cls, text, bold=False):
+        """
+        Prints a line to the console.
+        """
+        click.secho(text, bold=bold)
+
+    @classmethod
     def print_success(cls, text, bold=True):
         """
         Prints a line to the console, formatted as a success.
@@ -152,7 +215,8 @@ class ConsolePrinter:
         click.echo()
 
     @classmethod
-    def print_contract_one_liner(cls, contract, is_kept):
+    def print_contract_one_liner(cls, contract: Contract) -> None:
+        is_kept = contract.is_kept
         click.secho('{} '.format(contract), nl=False)
         if contract.whitelisted_paths:
             click.secho('({} whitelisted paths) '.format(len(contract.whitelisted_paths)),

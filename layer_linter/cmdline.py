@@ -5,9 +5,9 @@ import logging
 import importlib
 
 from .module import SafeFilenameModule
-from .dependencies import DependencyGraph, InvalidDependencies
+from .dependencies import DependencyGraph
 from .contract import get_contracts, ContractParseError
-from .reports import ContractAdherenceReport, InvalidDependenciesReport
+from .report import get_report_class, VERBOSITY_QUIET, VERBOSITY_NORMAL, VERBOSITY_HIGH
 
 
 logger = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 def create_parser():
     parser = argparse.ArgumentParser(
         description='Checks that your project follows a custom-defined '
-        'layered architecture, based on a layers.yaml file.'
+        'layered architecture, based on a layers.yml file.'
     )
 
     parser.add_argument(
@@ -27,14 +27,35 @@ def create_parser():
     parser.add_argument(
         '--config-directory',
         required=False,
-        help="The directory containing your layers.yaml. If not supplied, Layer Linter will "
+        help="The directory containing your layers.yml. If not supplied, Layer Linter will "
              "look inside the current directory.",
 
     )
+
+    parser.add_argument(
+        '-v',
+        '--verbose',
+        # Using a count allows us to increase verbosity levels using -vv, -vvv etc., should they
+        # be necessary in future.
+        action='count',
+        default=VERBOSITY_NORMAL,
+        dest='verbosity',
+        help="Increase verbosity."
+    )
+
+    parser.add_argument(
+        '--quiet',
+        required=False,
+        action='store_true',
+        dest='is_quiet',
+        help="Do not output anything on success."
+    )
+
     parser.add_argument(
         '--debug',
         required=False,
         action="store_true",
+        dest='is_debug',
         help="Whether to display debug information.",
     )
 
@@ -44,23 +65,35 @@ def create_parser():
 def main():
     parser = create_parser()
     args = parser.parse_args()
-    return _main(args.package_name, args.config_directory, args.debug)
+    return _main(args.package_name, args.config_directory, args.is_debug, args.verbosity,
+                 args.is_quiet)
 
 
-def _main(package_name, config_directory=None, is_debug=False):
+def _main(package_name, config_directory=None, is_debug=False,
+          verbosity=VERBOSITY_NORMAL, is_quiet=False):
+
+    # Parse quiet mode into a verbosity level.
+    if is_quiet:
+        if verbosity > VERBOSITY_NORMAL:
+            exit("Invalid parameters: quiet and verbose called together. Choose one or the other.")
+            verbosity = VERBOSITY_QUIET
+    if verbosity > VERBOSITY_HIGH:
+        exit("That level of verbosity is not supported. Maximum verbosity is -{}.".format(
+             'v' * (VERBOSITY_HIGH - 1)))
     if is_debug:
         logging.basicConfig(level=logging.DEBUG)
 
     # Add current directory to the path, as this doesn't happen automatically.
     sys.path.insert(0, os.getcwd())
 
-    try:
-        package = importlib.import_module(package_name)
-    except ImportError as e:
-        logger.debug(e)
+    # Attempt to locate the package file.
+    package_filename = importlib.util.find_spec(package_name)
+    if not package_filename:
         logger.debug("sys.path: {}".format(sys.path))
         exit("Could not find package '{}' in your path.".format(package_name))
+    package = SafeFilenameModule(name=package_name, filename=package_filename.origin)
 
+    # Parse contracts file.
     if config_directory is None:
         config_directory = os.getcwd()
     try:
@@ -70,19 +103,15 @@ def _main(package_name, config_directory=None, is_debug=False):
     except ContractParseError as e:
         exit('Error: {}'.format(e))
 
-    package = SafeFilenameModule(name=package_name, filename=package.__file__)
+    graph = DependencyGraph(package=package)
 
-    try:
-        graph = DependencyGraph(package=package)
-    except InvalidDependencies as e:
-        report = InvalidDependenciesReport(e)
-        report.output()
-        return 1  # Fail
+    report_class = get_report_class(verbosity)
+    report = report_class(graph)
 
-    report = ContractAdherenceReport(graph)
     for contract in contracts:
         contract.check_dependencies(graph)
         report.add_contract(contract)
+
     report.output()
 
     if report.has_broken_contracts:

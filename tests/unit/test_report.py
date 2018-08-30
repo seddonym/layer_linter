@@ -1,9 +1,33 @@
 from unittest.mock import MagicMock, patch, call, sentinel
 import pytest
 
+from layer_linter.module import Module
 from layer_linter.contract import Contract
-from layer_linter import reports
-from layer_linter.reports import ContractAdherenceReport, ConsolePrinter
+from layer_linter import report
+from layer_linter.report import QuietReport, NormalReport, VerboseReport, ConsolePrinter
+
+
+class StubDependencyGraph:
+    def __init__(self):
+        self.modules = [
+            Module('foo.one'),
+            Module('foo.two'),
+            Module('foo.three'),
+        ]
+        self.module_count = len(self.modules)
+        self.dependency_count = 4
+
+    def get_modules_directly_imported_by(self, importer):
+        return {
+            self.modules[0]: [
+                Module('foo.four.one'),
+                Module('foo.four.two'),
+            ],
+            self.modules[1]: [],
+            self.modules[2]: [
+                Module('foo.five'),
+            ]
+        }[importer]
 
 
 @pytest.fixture
@@ -28,42 +52,40 @@ def make_broken_contract():
     return _make_contract
 
 
-@patch.object(reports, 'ConsolePrinter')
+@pytest.mark.parametrize(
+    'report_class', (
+        QuietReport, NormalReport, VerboseReport,
+    )
+)
+@patch.object(report, 'ConsolePrinter')
 class TestReport:
-    def _report_contracts(self, contracts):
+    def _report_contracts(self, report_class, contracts):
         """
-        ContractAdherenceReport on the supplied list of Contracts.
+        Report on the supplied list of Contracts.
         """
-        self.report = ContractAdherenceReport(dependencies=MagicMock())
+        self.report = report_class(graph=StubDependencyGraph())
 
         for contract in contracts:
             self.report.add_contract(contract)
         self.report.output()
 
-    def test_zero_contracts(self, printer):
-        self._report_contracts(contracts=[])
-
-        printer.print_heading.assert_has_calls([
-            call('Layer Linter', printer.HEADING_LEVEL_ONE),
-            call('Contracts', printer.HEADING_LEVEL_TWO),
-        ])
-        printer.print_error.assert_called_once_with('No contracts found.')
-        assert self.report.has_broken_contracts is False
-
-    def test_single_kept_contract(self, printer, make_kept_contract):
+    def test_single_kept_contract(self, printer, report_class, make_kept_contract):
         kept_contract = make_kept_contract()
 
-        self._report_contracts([kept_contract])
+        self._report_contracts(report_class, [kept_contract])
 
-        printer.print_heading.assert_has_calls([
-            call('Layer Linter', printer.HEADING_LEVEL_ONE),
-            call('Contracts', printer.HEADING_LEVEL_TWO),
-        ])
-        printer.print_contract_one_liner.assert_called_once_with(kept_contract, is_kept=True)
-        printer.print_success.assert_called_once_with('Contracts: 1 kept, 0 broken.')
+        self.assert_headings_printed(report_class, printer, is_successful=True)
+
+        if report_class is VerboseReport:
+            self.assert_dependencies_printed(printer)
+
+        if report_class is not QuietReport:
+            printer.print_contract_one_liner.assert_called_once_with(kept_contract)
+            printer.print_success.assert_called_once_with('Contracts: 1 kept, 0 broken.')
+
         assert self.report.has_broken_contracts is False
 
-    def test_single_broken_contract_direct(self, printer, make_broken_contract):
+    def test_single_broken_contract_direct(self, printer, report_class, make_broken_contract):
         broken_contract = make_broken_contract(
             name='Foo',
             illegal_dependencies=[
@@ -71,13 +93,13 @@ class TestReport:
             ]
         )
 
-        self._report_contracts([broken_contract])
+        self._report_contracts(report_class, [broken_contract])
 
-        printer.print_heading.assert_has_calls([
-            call('Layer Linter', printer.HEADING_LEVEL_ONE),
-            call('Contracts', printer.HEADING_LEVEL_TWO),
-        ])
-        printer.print_contract_one_liner.assert_called_once_with(broken_contract, is_kept=False)
+        self.assert_headings_printed(report_class, printer, is_successful=False)
+
+        if report_class is VerboseReport:
+            self.assert_dependencies_printed(printer)
+
         printer.print_error.assert_has_calls([call('Contracts: 0 kept, 1 broken.')])
         printer.print_heading.assert_has_calls([
             call('Broken contracts', printer.HEADING_LEVEL_TWO,
@@ -93,7 +115,7 @@ class TestReport:
 
         assert self.report.has_broken_contracts is True
 
-    def test_multiple_kept_and_broken_contracts(self, printer, make_kept_contract,
+    def test_multiple_kept_and_broken_contracts(self, printer, report_class, make_kept_contract,
                                                 make_broken_contract):
         broken_contract_1 = make_broken_contract(
             name='Contract 1',
@@ -110,24 +132,28 @@ class TestReport:
         kept_contract_1 = make_kept_contract()
         kept_contract_2 = make_kept_contract()
         kept_contract_3 = make_kept_contract()
-        self._report_contracts([
-            broken_contract_1,
-            kept_contract_1,
-            broken_contract_2,
-            kept_contract_2,
-            kept_contract_3,
-        ])
+        self._report_contracts(
+            report_class,
+            [
+                broken_contract_1,
+                kept_contract_1,
+                broken_contract_2,
+                kept_contract_2,
+                kept_contract_3,
+            ]
+        )
 
-        printer.print_heading.assert_has_calls([
-            call('Layer Linter', printer.HEADING_LEVEL_ONE),
-            call('Contracts', printer.HEADING_LEVEL_TWO),
-        ])
+        self.assert_headings_printed(report_class, printer, is_successful=False)
+
+        if report_class is VerboseReport:
+            self.assert_dependencies_printed(printer)
+
         printer.print_contract_one_liner.assert_has_calls([
-            call(kept_contract_1, is_kept=True),
-            call(kept_contract_2, is_kept=True),
-            call(kept_contract_3, is_kept=True),
-            call(broken_contract_1, is_kept=False),
-            call(broken_contract_2, is_kept=False),
+            call(kept_contract_1),
+            call(kept_contract_2),
+            call(kept_contract_3),
+            call(broken_contract_1),
+            call(broken_contract_2),
         ])
         printer.print_error.assert_has_calls([call('Contracts: 3 kept, 2 broken.')])
         printer.print_heading.assert_has_calls([
@@ -152,7 +178,7 @@ class TestReport:
         ])
         assert self.report.has_broken_contracts is True
 
-    def test_single_broken_contract_indirect(self, printer, make_broken_contract):
+    def test_single_broken_contract_indirect(self, printer, report_class, make_broken_contract):
         contract = make_broken_contract(
             name='Foo',
             illegal_dependencies=[
@@ -160,14 +186,15 @@ class TestReport:
             ]
         )
 
-        self._report_contracts([contract])
+        self._report_contracts(report_class, [contract])
 
-        printer.print_heading.assert_has_calls([
-            call('Layer Linter', printer.HEADING_LEVEL_ONE),
-            call('Contracts', printer.HEADING_LEVEL_TWO),
-        ])
+        self.assert_headings_printed(report_class, printer, is_successful=False)
+
+        if report_class is VerboseReport:
+            self.assert_dependencies_printed(printer)
+
         printer.print_contract_one_liner.assert_has_calls([
-            call(contract, is_kept=False),
+            call(contract),
         ])
         printer.print_error.assert_has_calls([call('Contracts: 0 kept, 1 broken.')])
         printer.print_heading.assert_has_calls([
@@ -185,8 +212,8 @@ class TestReport:
         ])
         assert self.report.has_broken_contracts is True
 
-    def test_single_broken_contract_multiple_illegal_dependencies(self,
-                                                                  printer, make_broken_contract):
+    def test_single_broken_contract_multiple_illegal_dependencies(self, printer, report_class,
+                                                                  make_broken_contract):
         contract = make_broken_contract(
             name='Foo',
             illegal_dependencies=[
@@ -195,14 +222,15 @@ class TestReport:
             ]
         )
 
-        self._report_contracts([contract])
+        self._report_contracts(report_class, [contract])
 
-        printer.print_heading.assert_has_calls([
-            call('Layer Linter', printer.HEADING_LEVEL_ONE),
-            call('Contracts', printer.HEADING_LEVEL_TWO),
-        ])
+        self.assert_headings_printed(report_class, printer, is_successful=False)
+
+        if report_class is VerboseReport:
+            self.assert_dependencies_printed(printer)
+        
         printer.print_contract_one_liner.assert_has_calls([
-            call(contract, is_kept=False),
+            call(contract),
         ])
         printer.print_error.assert_has_calls([call('Contracts: 0 kept, 1 broken.')])
         printer.print_heading.assert_has_calls([
@@ -223,8 +251,36 @@ class TestReport:
         ])
         assert self.report.has_broken_contracts is True
 
+    def assert_headings_printed(self, report_class, printer, is_successful):
+        if (report_class is QuietReport) and is_successful:
+            printer.print_heading.assert_not_called()
+            printer.print_contract_one_liner.assert_not_called()
+            printer.print_success.assert_not_called()
+        elif report_class is VerboseReport:
+            printer.print_heading.assert_has_calls([
+                call('Layer Linter', printer.HEADING_LEVEL_ONE),
+                call('Dependencies', printer.HEADING_LEVEL_TWO),
+                call('Contracts', printer.HEADING_LEVEL_TWO),
+            ])
+        else:
+            printer.print_heading.assert_has_calls([
+                call('Layer Linter', printer.HEADING_LEVEL_ONE),
+                call('Contracts', printer.HEADING_LEVEL_TWO),
+            ])
 
-@patch.object(reports, 'click')
+    def assert_dependencies_printed(self, printer):
+        printer.print.assert_has_calls([
+            call('foo.one imports:', bold=True),
+            call('- foo.four.one'),
+            call('- foo.four.two'),
+            call('foo.two imports:', bold=True),
+            call('- (nothing)'),
+            call('foo.three imports:', bold=True),
+            call('- foo.five'),
+        ])
+
+
+@patch.object(report, 'click')
 class TestConsolePrinter:
     @pytest.mark.parametrize('style,expected_color', [
         (None, None),
@@ -267,6 +323,13 @@ class TestConsolePrinter:
         click.echo.assert_called_once_with()
 
     @pytest.mark.parametrize('bold', (True, False))
+    def test_print(self, click, bold):
+        ConsolePrinter.print(sentinel.text, bold)
+
+        click.secho.assert_called_once_with(
+            sentinel.text, bold=bold)
+
+    @pytest.mark.parametrize('bold', (True, False))
     def test_print_success(self, click, bold):
         ConsolePrinter.print_success(sentinel.text, bold)
 
@@ -298,11 +361,12 @@ class TestConsolePrinter:
     def test_print_contract_one_liner(self, click, is_kept, whitelisted_path_length,
                                       expected_label, expected_color):
         contract = MagicMock(
-            whitelisted_paths=[MagicMock()] * whitelisted_path_length
+            whitelisted_paths=[MagicMock()] * whitelisted_path_length,
+            is_kept=is_kept,
         )
         contract.__str__.return_value = 'Foo'
 
-        ConsolePrinter.print_contract_one_liner(contract, is_kept)
+        ConsolePrinter.print_contract_one_liner(contract)
 
         if whitelisted_path_length:
             click.secho.assert_has_calls([

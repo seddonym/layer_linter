@@ -12,10 +12,6 @@ from .analysis import DependencyAnalyzer
 logger = logging.getLogger(__name__)
 
 
-class InvalidDependencies(Exception):
-    pass
-
-
 class DependencyGraph:
     """
     A graph of the internal dependencies in a Python package.
@@ -45,15 +41,22 @@ class DependencyGraph:
         self._networkx_graph = networkx.DiGraph()
         self.dependency_count = 0
 
-        # TODO include handling of syntax errors, which should be included in
-        # a raise of InvalidDependencies - the method we use will determine when this
-        # is handled.
         analyzer = DependencyAnalyzer(modules=self.modules, package=package)
         for import_path in analyzer.determine_import_paths():
             self._add_path_to_networkx_graph(import_path)
             self.dependency_count += 1
 
         self.module_count = len(self.modules)
+
+    def get_modules_directly_imported_by(self, importer: Module) -> List[Module]:
+        """
+        Returns all the modules directly imported by the importer.
+        """
+        if importer in self._networkx_graph:
+            return self._networkx_graph.successors(importer)
+        else:
+            # Nodes that do not import anything are not present in the networkx graph.
+            return []
 
     def find_path(self,
                   downstream: Module, upstream: Module,

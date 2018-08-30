@@ -113,6 +113,7 @@ class DependencyAnalyzer:
                         trimmed_modules.append(candidate_module)
                         found = True
                         continue
+                    # TODO: this line never gets run by tests, is it actually necessary?
                     components = components[:-1]
                 # If we got here, we won't have found a candidate module.
         return trimmed_modules

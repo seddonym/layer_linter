@@ -64,18 +64,19 @@ def test_dependency_graph():
     #     - one [7]
     #     - two [8]
     #     - three [9]
-    #     - is [X]
-    #     - subsubpackage [10]
-    #       - one [11]
-    #       - two [12]
-    #       - three [13]
-    assert graph.module_count == 13
+    #     - is [10] (treat reserved keywords as normal modules)
+    #     - subsubpackage [11]
+    #       - one [12]
+    #       - two [13]
+    #       - three [14]
+    assert graph.module_count == 14
     # Dependency count should be 7:
     # dependenciespackage.two <- dependenciespackage.one
     # dependenciespackage.three <- dependenciespackage.two
     # dependenciespackage.four <- dependenciespackage.three
     # dependenciespackage.subpackage.two <- dependenciespackage.subpackage.one
     # dependenciespackage.subpackage.three <- dependenciespackage.subpackage.two
+    # dependenciespackage.subpackage.is <- dependenciespackage.subpackage.three
     # dependenciespackage.subpackage.subsubpackage.two <- dependenciespackage.subpackage.subsubpackage.one
     # dependenciespackage.subpackage.subsubpackage.three <- dependenciespackage.subpackage.subsubpackage.two
-    assert graph.dependency_count == 7
+    assert graph.dependency_count == 8

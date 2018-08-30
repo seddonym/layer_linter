@@ -7,7 +7,7 @@ Before use, you will probably want to read :doc:`concepts`.
 Defining your contracts
 -----------------------
 
-Your layers contracts are defined in a yaml file named ``layers.yaml``. This
+Your layers contracts are defined in a yaml file named ``layers.yml``. This
 may exist anywhere, but a good place is in your project root.
 
 The file contains one or more contracts, in the following format:
@@ -44,7 +44,7 @@ Running the linter
 
 Layer Linter provides a single command: ``layer-lint``.
 
-Running this will check that your project adheres to the contracts in your ``layers.yaml``.
+Running this will check that your project adheres to the contracts in your ``layers.yml``.
 
 - Positional arguments:
 
@@ -52,8 +52,10 @@ Running this will check that your project adheres to the contracts in your ``lay
 
 - Optional arguments:
 
-    - ``--config-directory``: The directory containing your ``layers.yaml``. If not
+    - ``--config-directory``: The directory containing your ``layers.yml``. If not
       supplied, Layer Linter will look in the current directory.
+    - ``--quiet``: Do not output anything if the contracts are all adhered to.
+    - ``--verbose`` (or ``-v``): Output a more verbose report.
     - ``--debug``: Output debug messages when running the linter. No parameters required.
 
 Default usage:
@@ -62,7 +64,7 @@ Default usage:
 
     layer-lint myproject
 
-Custom ``layers.yaml`` location:
+Custom ``layers.yml`` location:
 
 .. code-block:: none
 

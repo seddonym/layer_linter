@@ -1,6 +1,7 @@
 import os
-import sys
 from typing import Tuple, List
+
+import pytest
 
 from layer_linter.dependencies.scanner import PackageScanner
 from layer_linter.module import Module, SafeFilenameModule
@@ -32,6 +33,12 @@ class TestPackageScanner:
                 ('scannersuccess.two.beta',  'two/beta.py'),
                 ('scannersuccess.two.gamma',  'two/gamma.py'),
                 ('scannersuccess.four', 'four.py'),
+                # Also include invalid modules. To keep things simple, Layer Linter won't decide
+                # what is and isn't allowed - but we don't want them to break things.
+                ('scannersuccess.in', 'in/__init__.py'),
+                ('scannersuccess.in.class', 'in/class.py'),
+                ('scannersuccess.in.hyphenated-name', 'in/hyphenated-name.py'),
+
             ),
         )
         assert set(modules) == set(expected_modules)
@@ -41,32 +48,6 @@ class TestPackageScanner:
         sorted_expected_modules = sorted(expected_modules, key=sort_by_name)
         for index, module in enumerate(sorted_modules):
             assert module.filename == sorted_expected_modules[index].filename
-
-    def test_invalid_modules(self):
-        package_directory = self._get_package_directory('scannerinvalid')
-        package = SafeFilenameModule(
-            name='scannerinvalid',
-            filename=os.path.join(package_directory, '__init__.py'),
-        )
-
-        scanner = PackageScanner(package)
-        modules = scanner.scan_for_modules()
-
-        expected_illegal_module_filenames = map(
-            lambda p: os.path.join(package_directory, p),
-            [
-                'one/in/__init__.py',
-                'one/in/green.py',
-                'one/class.py',
-                'two/123.py',
-                'two/hyphenated-name.py',
-            ]
-        )
-
-        scanner = PackageScanner(package)
-        scanner.scan_for_modules()
-
-        assert set(scanner.illegal_module_filenames) == set(expected_illegal_module_filenames)
 
     def _get_package_directory(self, package_name: str) -> str:
         """

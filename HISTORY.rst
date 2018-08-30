@@ -10,13 +10,13 @@ History
 0.2.0 (2018-06-23)
 ------------------
 
-* Look for ``layers.yaml`` in current working directory.
+* Look for ``layers.yml`` in current working directory.
 
 0.3.0 (2018-06-24)
 ------------------
 
 * Rename command to ``layer-lint``.
-* Changed order of layers in ``layers.yaml`` to be listed high level to low level.
+* Changed order of layers in ``layers.yml`` to be listed high level to low level.
 
 0.4.0 (2018-07-22)
 ------------------
@@ -49,3 +49,11 @@ History
 
 * Don't analyse children of directories that aren't Python packages.
 * Prevented installing incompatible version of Pydeps (1.6).
+
+latest
+------
+
+* Complete rewrite of static analysis used to build dependency graph.
+* Added quiet and verbose reporting.
+* Added type annotation.
+* Build earlier versions of Python using pybackwards.

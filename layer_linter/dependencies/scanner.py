@@ -10,10 +10,6 @@ from ..module import SafeFilenameModule
 logger = logging.getLogger(__name__)
 
 
-class IllegalModuleName(Exception):
-    pass
-
-
 class PackageScanner:
     def __init__(self, package: SafeFilenameModule) -> None:
         self.package = package
@@ -22,27 +18,16 @@ class PackageScanner:
         """
         Returns:
             List of module names (list(str, ...)).
-
-        Sets illegal_module_filenames as an attribute, that can be accessed to see if there were
-        any modules that couldn't be imported due to their filenames being invalid.
         """
         package_directory = os.path.dirname(self.package.filename)
         modules: List[SafeFilenameModule] = []
-        self.illegal_module_filenames: List[str] = []
 
         for module_filename in self._get_python_files_inside_package(package_directory):
-            try:
-                module_name = self._module_name_from_filename(module_filename,
-                                                              package_directory)
-                modules.append(
-                    SafeFilenameModule(module_name, module_filename)
-                )
-            except IllegalModuleName:
-                self.illegal_module_filenames.append(module_filename)
-                logger.debug('Skipped illegal module {}.'.format(module_filename))
-                continue
+            module_name = self._module_name_from_filename(module_filename, package_directory)
+            modules.append(
+                SafeFilenameModule(module_name, module_filename)
+            )
 
-        # TODO raise NoModulesFound?
         return modules
 
     def _get_python_files_inside_package(self, directory: str) -> Iterator[str]:
@@ -102,8 +87,4 @@ class PackageScanner:
         components = [package_name] + internal_filename_and_path_without_extension.split('/')
         if components[-1] == '__init__':
             components.pop()
-        contains_keyword = any(map(iskeyword, components))
-        is_valid_identifier = all([c.isidentifier() for c in components])
-        if contains_keyword or not is_valid_identifier:
-            raise IllegalModuleName
         return '.'.join(components)
