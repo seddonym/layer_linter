@@ -16,7 +16,7 @@ matrix:
     - name: "Layer lint"
       python: "3.6"
       env: TOXENV=layer_lint
-install: pip install -U tox-travis
+install: pip install -U tox-travis tox-py-backwards
 script: tox
 deploy:
   provider: pypi
