@@ -5,7 +5,7 @@ import logging
 import importlib
 
 from .module import SafeFilenameModule
-from .dependencies import get_dependencies, InvalidDependencies
+from .dependencies import DependencyGraph, InvalidDependencies
 from .contract import get_contracts, ContractParseError
 from .reports import ContractAdherenceReport, InvalidDependenciesReport
 
@@ -70,18 +70,18 @@ def _main(package_name, config_directory=None, is_debug=False):
     except ContractParseError as e:
         exit('Error: {}'.format(e))
 
+    package = SafeFilenameModule(name=package_name, filename=package.__file__)
+
     try:
-        dependencies = get_dependencies(
-            SafeFilenameModule(name=package_name, filename=package.__file__)
-        )
+        graph = DependencyGraph(package=package)
     except InvalidDependencies as e:
         report = InvalidDependenciesReport(e)
         report.output()
         return 1  # Fail
 
-    report = ContractAdherenceReport(dependencies)
+    report = ContractAdherenceReport(graph)
     for contract in contracts:
-        contract.check_dependencies(dependencies)
+        contract.check_dependencies(graph)
         report.add_contract(contract)
     report.output()
 

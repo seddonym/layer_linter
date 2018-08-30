@@ -16,10 +16,6 @@ class InvalidDependencies(Exception):
     pass
 
 
-def get_dependencies(package: SafeFilenameModule) -> 'DependencyGraph':
-    return DependencyGraph(package)
-
-
 class DependencyGraph:
     """
     A graph of the internal dependencies in a Python package.

@@ -1,10 +1,10 @@
-from layer_linter.dependencies import get_dependencies
+from layer_linter.dependencies import DependencyGraph
 from layer_linter.module import Module, SafeFilenameModule
 import os
 import sys
 
 
-def test_get_dependencies():
+def test_dependency_graph():
     dirname = os.path.dirname(__file__)
     path = os.path.abspath(os.path.join(dirname, '..', '..', 'assets'))
 
@@ -27,28 +27,28 @@ def test_get_dependencies():
     SUBSUBMODULE_THREE = Module("{}.{}.{}.three".format(ROOT_PACKAGE, SUBPACKAGE, SUBSUBPACKAGE))
 
     root_package = __import__(ROOT_PACKAGE)
-    dependencies = get_dependencies(
+    graph = DependencyGraph(
         SafeFilenameModule(name=ROOT_PACKAGE, filename=root_package.__file__)
     )
 
-    assert dependencies.find_path(
+    assert graph.find_path(
         upstream=MODULE_ONE,
         downstream=MODULE_TWO) == (MODULE_TWO, MODULE_ONE)
 
-    assert dependencies.find_path(
+    assert graph.find_path(
         upstream=MODULE_TWO,
         downstream=MODULE_ONE) is None
 
-    assert dependencies.find_path(
+    assert graph.find_path(
         upstream=MODULE_ONE,
         downstream=MODULE_FOUR) == (MODULE_FOUR, MODULE_THREE,
                                     MODULE_TWO, MODULE_ONE)
 
-    assert dependencies.find_path(
+    assert graph.find_path(
         upstream=SUBMODULE_ONE,
         downstream=SUBMODULE_THREE) == (SUBMODULE_THREE, SUBMODULE_TWO, SUBMODULE_ONE)
 
-    assert dependencies.find_path(
+    assert graph.find_path(
         upstream=SUBSUBMODULE_ONE,
         downstream=SUBSUBMODULE_THREE) == (SUBSUBMODULE_THREE, SUBSUBMODULE_TWO, SUBSUBMODULE_ONE)
 
@@ -69,7 +69,7 @@ def test_get_dependencies():
     #       - one [11]
     #       - two [12]
     #       - three [13]
-    assert dependencies.module_count == 13
+    assert graph.module_count == 13
     # Dependency count should be 7:
     # dependenciespackage.two <- dependenciespackage.one
     # dependenciespackage.three <- dependenciespackage.two
@@ -78,4 +78,4 @@ def test_get_dependencies():
     # dependenciespackage.subpackage.three <- dependenciespackage.subpackage.two
     # dependenciespackage.subpackage.subsubpackage.two <- dependenciespackage.subpackage.subsubpackage.one
     # dependenciespackage.subpackage.subsubpackage.three <- dependenciespackage.subpackage.subsubpackage.two
-    assert dependencies.dependency_count == 7
+    assert graph.dependency_count == 7
