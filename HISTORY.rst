@@ -55,5 +55,6 @@ latest
 
 * Complete rewrite of static analysis used to build dependency graph.
 * Added quiet and verbose reporting.
-* Added type annotation.
+* Added type annotation and mypy.
 * Build earlier versions of Python using pybackwards.
+* Corrected docs to refer to ``layers.yml`` instead of ``layers.yaml``.

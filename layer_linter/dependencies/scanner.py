@@ -2,8 +2,6 @@ from typing import List, Iterator
 import os
 import logging
 
-from keyword import iskeyword
-
 from ..module import SafeFilenameModule
 
 

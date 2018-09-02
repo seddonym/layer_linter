@@ -73,8 +73,9 @@ class BaseReport:
         ConsolePrinter.new_line()
 
     def _output_broken_contracts_details(self):
-        ConsolePrinter.print_heading('Broken contracts', ConsolePrinter.HEADING_LEVEL_TWO,
-                                                         style=ConsolePrinter.ERROR)
+        ConsolePrinter.print_heading('Broken contracts',
+                                     ConsolePrinter.HEADING_LEVEL_TWO,
+                                     style=ConsolePrinter.ERROR)
         ConsolePrinter.new_line()
 
         for broken_contract in self.broken_contracts:
@@ -109,7 +110,7 @@ class QuietReport(NormalReport):
     """
     def output(self) -> None:
         if self.broken_contracts:
-           super().output()
+            super().output()
 
 
 class VerboseReport(BaseReport):
