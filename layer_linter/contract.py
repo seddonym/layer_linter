@@ -1,9 +1,11 @@
+from typing import List, Dict, Iterable, Optional
 import yaml
 import os
 import logging
 from copy import copy
 
-from .dependencies import ImportPath
+from .dependencies import DependencyGraph, ImportPath
+from .module import Module
 
 
 logger = logging.getLogger(__name__)
@@ -14,26 +16,26 @@ class ContractParseError(IOError):
 
 
 class Layer:
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         self.name = name
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<{}: {}>'.format(self.__class__.__name__, self)
 
 
 class Contract:
-    def __init__(self, name, packages, layers, whitelisted_paths=None, recursive=False):
+    def __init__(self, name: str, packages: List[Module], layers: List[Layer],
+                 whitelisted_paths: Optional[List[ImportPath]] = None) -> None:
         self.name = name
         self.packages = packages
         self.layers = layers
         self.whitelisted_paths = whitelisted_paths if whitelisted_paths else []
-        self.recursive = recursive
 
-    def check_dependencies(self, dependencies):
-        self.illegal_dependencies = []
+    def check_dependencies(self, dependencies: DependencyGraph) -> None:
+        self.illegal_dependencies: List[List[str]] = []
 
         logger.debug('Checking dependencies for contract {}...'.format(self))
 
@@ -41,7 +43,8 @@ class Contract:
             for layer in reversed(self.layers):
                 self._check_layer_does_not_import_downstream(layer, package, dependencies)
 
-    def _check_layer_does_not_import_downstream(self, layer, package, dependencies):
+    def _check_layer_does_not_import_downstream(self, layer: Layer, package: Module,
+                                                dependencies: DependencyGraph) -> None:
 
         logger.debug("Layer '{}' in package '{}'.".format(layer, package))
 
@@ -65,7 +68,9 @@ class Contract:
                     logger.debug('Illegal dependency found: {}'.format(path))
                     self._update_illegal_dependencies(path)
 
-    def _get_modules_in_layer(self, layer, package, dependencies):
+    def _get_modules_in_layer(
+        self, layer: Layer, package: Module, dependencies: DependencyGraph
+    ) -> List[Module]:
         """
         Args:
             layer: The Layer object.
@@ -75,19 +80,20 @@ class Contract:
             List of modules names within that layer, including the layer module itself.
             Includes grandchildren and deeper.
         """
-        layer_module = "{}.{}".format(package, layer.name)
+        layer_module = Module("{}.{}".format(package, layer.name))
         modules = [layer_module]
         modules.extend(
             dependencies.get_descendants(layer_module)
         )
         return modules
 
-    def _get_modules_in_downstream_layers(self, layer, package, dependencies):
+    def _get_modules_in_downstream_layers(
+        self, layer: Layer, package: Module, dependencies: DependencyGraph
+    ) -> List[Module]:
         modules = []
         for downstream_layer in self._get_layers_downstream_of(layer):
-            modules.extend(
-                # self._get_modules_in_layer(downstream_layer, package, dependencies)
-                ["{}.{}".format(package, downstream_layer.name)]
+            modules.append(
+                Module("{}.{}".format(package, downstream_layer.name))
             )
         return modules
 
@@ -129,7 +135,7 @@ class Contract:
             self.illegal_dependencies.append(path)
 
     @property
-    def is_kept(self):
+    def is_kept(self) -> bool:
         try:
             return len(self.illegal_dependencies) == 0
         except AttributeError:
@@ -138,25 +144,29 @@ class Contract:
                 'until check_dependencies is called.'
             )
 
-    def _get_layers_downstream_of(self, layer):
+    def _get_layers_downstream_of(self, layer: Layer) -> Iterable[Layer]:
         return reversed(self.layers[:self.layers.index(layer)])
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<{}: {}>'.format(self.__class__.__name__, self)
 
 
-def contract_from_yaml(key, data):
-    layers = []
-    for layer_data in data['layers']:
-        layers.append(Layer(layer_data))
+def contract_from_yaml(key: str, data: Dict) -> Contract:
+    layers: List[Layer] = []
+    for layer_name in data['layers']:
+        layers.append(Layer(layer_name))
 
-    whitelisted_paths = []
+    packages: List[Module] = []
+    for package_name in data['packages']:
+        packages.append(Module(package_name))
+
+    whitelisted_paths: List[ImportPath] = []
     for whitelist_data in data.get('whitelisted_paths', []):
         try:
-            importer, imported = whitelist_data.split(' <- ')
+            importer, imported = map(Module, whitelist_data.split(' <- '))
         except ValueError:
             raise ValueError('Whitelisted paths must be in the format '
                              '"importer.module <- imported.module".')
@@ -165,13 +175,13 @@ def contract_from_yaml(key, data):
 
     return Contract(
         name=key,
-        packages=data['packages'],
+        packages=packages,
         layers=layers,
         whitelisted_paths=whitelisted_paths,
     )
 
 
-def get_contracts(path):
+def get_contracts(path: str) -> List[Contract]:
     """Given a path to a project, read in any contracts from a layers.yml file.
     Args:
         path (string): the path to the project root.

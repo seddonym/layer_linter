@@ -39,7 +39,7 @@ are following a self-imposed layered architecture within your Python project. Th
 is particularly useful if you are working on a complex codebase within a team,
 when you want to enforce a particular architectural style.
 
-To define how layers work within your project, you create a ``layers.yaml`` file.
+To define how layers work within your project, you create a ``layers.yml`` file.
 This file prescribes the order in which different modules within your project may
 import from each other.
 
@@ -54,7 +54,7 @@ Install Layer Linter::
 
     pip install layer-linter
 
-Create a ``layers.yaml`` in the root of your project, in this format:
+Create a ``layers.yml`` in the root of your project, in this format:
 
 .. code-block:: none
 

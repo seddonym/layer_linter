@@ -18,7 +18,6 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'networkx>=2.1,<3',
-    'pydeps>=1.5.1,<1.6',
     'PyYAML>=3.12,<4',
     'click>=6.7,<7',
 ]

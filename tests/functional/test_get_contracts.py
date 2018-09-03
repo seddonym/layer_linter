@@ -2,6 +2,7 @@ import os
 
 from layer_linter.contract import get_contracts, Layer
 from layer_linter.dependencies import ImportPath
+from layer_linter.module import Module
 
 
 def test_get_contracts():
@@ -33,8 +34,8 @@ def test_get_contracts():
         assert contract.name == expected_data['name']
 
         for package_index, package in enumerate(contract.packages):
-            expected_package_data = expected_data['packages'][package_index]
-            assert package == expected_package_data
+            expected_package_name = expected_data['packages'][package_index]
+            assert package == Module(expected_package_name)
 
         for layer_index, layer in enumerate(contract.layers):
             expected_layer_data = expected_data['layers'][layer_index]
