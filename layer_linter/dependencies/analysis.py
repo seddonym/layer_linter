@@ -97,23 +97,19 @@ class DependencyAnalyzer:
         return imported_modules
 
     def _trim_each_to_known_modules(self, imported_modules: List[Module]) -> List[Module]:
-        trimmed_modules = []
+        known_modules = []
         for imported_module in imported_modules:
             if imported_module in self.modules:
-                trimmed_modules.append(imported_module)
+                known_modules.append(imported_module)
             else:
                 # The module isn't in the known modules. This is because it's something *within*
-                # a module (e.g. a function). So we trim the components back until we find
-                # a module.
+                # a module (e.g. a function): the result of something like 'from .subpackage
+                # import my_function'. So we trim the components back to the module.
                 components = imported_module.name.split('.')[:-1]
-                found = False
-                while components and not found:
-                    candidate_module = Module('.'.join(components))
-                    if candidate_module in self.modules:
-                        trimmed_modules.append(candidate_module)
-                        found = True
-                        continue
-                    # TODO: this line never gets run by tests, is it actually necessary?
-                    components = components[:-1]
-                # If we got here, we won't have found a candidate module.
-        return trimmed_modules
+                trimmed_module = Module('.'.join(components))
+                if trimmed_module in self.modules:
+                    known_modules.append(trimmed_module)
+                else:
+                    # TODO: we may want to warn the user about this.
+                    logger.debug('{} not found in modules.'.format(trimmed_module))
+        return known_modules
