@@ -166,7 +166,7 @@ def contract_from_yaml(key: str, data: Dict) -> Contract:
     whitelisted_paths: List[ImportPath] = []
     for whitelist_data in data.get('whitelisted_paths', []):
         try:
-            importer, imported = whitelist_data.split(' <- ')
+            importer, imported = map(Module, whitelist_data.split(' <- '))
         except ValueError:
             raise ValueError('Whitelisted paths must be in the format '
                              '"importer.module <- imported.module".')
