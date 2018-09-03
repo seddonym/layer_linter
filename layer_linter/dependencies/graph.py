@@ -17,22 +17,22 @@ class DependencyGraph:
     A graph of the internal dependencies in a Python package.
 
     Usage:
-        package = __import__('mypackage')
-
-        graph = DependencyGraph(package)
+        graph = DependencyGraph(
+            SafeFilenameModule('mypackage', '/path/to/mypackage/__init__.py')
+        )
 
         path = graph.find_path(
-            downstream='',
-            upstream='',
+            downstream=Module('mypackage.foo.one'),
+            upstream=Module('mypackage.bar.two'),
             ignore_paths=[
                 ImportPath(
-                    importer='mypackage.foo',
-                    imported='mypackage.bar.baz'
+                    importer=Module('mypackage.foo'),
+                    imported=Module('mypackage.baz.three'),
                 ),
             ]
         )
 
-        descendants = graph.get_descendants('mypackage.foo')
+        descendants = graph.get_descendants(Module('mypackage.foo'))
     """
     def __init__(self, package: SafeFilenameModule) -> None:
         scanner = PackageScanner(package)
@@ -60,25 +60,16 @@ class DependencyGraph:
 
     def find_path(self,
                   downstream: Module, upstream: Module,
-                  ignore_paths: Optional[List[ImportPath]] = None) -> List[str]:
+                  ignore_paths: Optional[List[ImportPath]] = None) -> List[Module]:
         """
-        Args:
-            downstream (string):                 Absolute name of module.
-            upstream (string)                    Absolute name of module.
-            ignore_paths
-                (list of ImportPaths, optional): List of the paths that should not be considered.
+        Find a list of module names showing the dependency path between the downstream and the
+        upstream module, or None if there is no dependency.
 
-        Returns:
-            List of module names showing the dependency path between
-            the downstream and the upstream module, or None if there
-            is no dependency.
+        For example, given an upstream module a and a downstream module d:
 
-            For example, given an upstream module 'alpha' and a downstream
-            module 'delta':
-
-                - ['alpha'] will be returned if delta directly imports alpha.
-                - ['delta', 'gamma', 'beta', 'alpha'] will be returned if delta imports
-                  gamma, which imports beta, which imports alpha.
+                - [d, a] will be returned if d directly imports a.
+                - [d, c, b, a] will be returned if d imports c, which imports b, which imports a.
+                - None will be returned if d does not import a (even indirectly).
         """
         logger.debug("Finding path from '{}' up to '{}'.".format(downstream, upstream))
         ignore_paths = ignore_paths if ignore_paths else []

@@ -9,6 +9,14 @@ logger = logging.getLogger(__name__)
 
 
 class PackageScanner:
+    """
+    Scans a package for all the Python modules within it.
+
+    Usage:
+        package = SafeFilenameModule('mypackage', '/path/to/mypackage/__init__.py')
+        scanner = PackageScanner(package)
+        modules = scanner.scan_for_modules()
+    """
     def __init__(self, package: SafeFilenameModule) -> None:
         self.package = package
 

@@ -16,9 +16,9 @@ class DependencyAnalyzer:
 
     Args:
         modules: list of all SafeFilenameModules that make up the package.
-        package: tmylpyhe Python package that contains all the modules.
-    Usage:
+        package: the Python package that contains all the modules.
 
+    Usage:
         analyzer = DependencyAnalyzer(modules)
         import_paths = analyzer.determine_import_paths()
     """
@@ -27,14 +27,20 @@ class DependencyAnalyzer:
         self.package = package
 
     def determine_import_paths(self) -> List[ImportPath]:
+        """
+        Return a list of the ImportPaths for all the modules.
+        """
         import_paths: List[ImportPath] = []
         for module in self.modules:
             import_paths.extend(
-                self._get_import_paths(module)
+                self._determine_import_paths_for_module(module)
             )
         return import_paths
 
-    def _get_import_paths(self, module: SafeFilenameModule) -> List[ImportPath]:
+    def _determine_import_paths_for_module(self, module: SafeFilenameModule) -> List[ImportPath]:
+        """
+        Return a list of all the ImportPaths for which a given Module is the importer.
+        """
         import_paths: List[ImportPath] = []
         imported_modules = self._get_imported_modules(module)
         for imported_module in imported_modules:
@@ -63,6 +69,7 @@ class DependencyAnalyzer:
         ast_tree = ast.parse(module_contents)
         for node in ast.walk(ast_tree):
             if isinstance(node, ast.ImportFrom):
+                # Parsing something in the form 'from x import ...'.
                 assert isinstance(node.level, int)
                 if node.level == 0:
                     # Absolute import.
@@ -71,9 +78,7 @@ class DependencyAnalyzer:
                     if not node.module.startswith(self.package.name):
                         # Don't include imports of modules outside this package.
                         continue
-                    for alias in node.names:
-                        full_module_name = '.'.join([node.module, alias.name])
-                        imported_modules.append(Module(full_module_name))
+                    module_base = node.module
                 elif node.level >= 1:
                     # Relative import. The level corresponds to how high up the tree it goes;
                     # for example 'from ... import foo' would be level 3.
@@ -83,15 +88,22 @@ class DependencyAnalyzer:
                     module_base = '.'.join(importing_module_components[:-node.level])
                     if node.module:
                         module_base = '.'.join([module_base, node.module])
-                    for alias in node.names:
-                        full_module_name = '.'.join([module_base, alias.name])
-                        imported_modules.append(Module(full_module_name))
+
+                # node.names corresponds to 'a', 'b' and 'c' in 'from x import a, b, c'.
+                for alias in node.names:
+                    full_module_name = '.'.join([module_base, alias.name])
+                    imported_modules.append(Module(full_module_name))
+
             elif isinstance(node, ast.Import):
+                # Parsing a line in the form 'import x'.
                 for alias in node.names:
                     if not alias.name.startswith(self.package.name):
                         # Don't include imports of modules outside this package.
                         continue
                     imported_modules.append(Module(alias.name))
+            else:
+                # Not an import statement; move on.
+                continue
 
         imported_modules = self._trim_each_to_known_modules(imported_modules)
         return imported_modules

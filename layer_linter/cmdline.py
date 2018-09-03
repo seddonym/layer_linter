@@ -123,6 +123,7 @@ def _get_package(package_name: str) -> SafeFilenameModule:
     if not package_filename:
         logger.debug("sys.path: {}".format(sys.path))
         exit("Could not find package '{}' in your path.".format(package_name))
+    assert package_filename.origin  # For type checker.
     return SafeFilenameModule(name=package_name, filename=package_filename.origin)
 
 
