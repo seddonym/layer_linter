@@ -104,7 +104,7 @@ def _normalise_verbosity(verbosity: int, is_quiet: bool) -> int:
     if is_quiet:
         if verbosity > VERBOSITY_NORMAL:
             exit("Invalid parameters: quiet and verbose called together. Choose one or the other.")
-            verbosity = VERBOSITY_QUIET
+        verbosity = VERBOSITY_QUIET
     if verbosity > VERBOSITY_HIGH:
         exit("That level of verbosity is not supported. Maximum verbosity is -{}.".format(
              'v' * (VERBOSITY_HIGH - 1)))
