@@ -1,3 +1,4 @@
+from typing import List
 import argparse
 import os
 import sys
@@ -6,7 +7,7 @@ import importlib
 
 from .module import SafeFilenameModule
 from .dependencies import DependencyGraph
-from .contract import get_contracts, ContractParseError
+from .contract import get_contracts, Contract, ContractParseError
 from .report import get_report_class, VERBOSITY_QUIET, VERBOSITY_NORMAL, VERBOSITY_HIGH
 
 
@@ -72,39 +73,15 @@ def main():
 def _main(package_name, config_directory=None, is_debug=False,
           verbosity=VERBOSITY_NORMAL, is_quiet=False):
 
-    # Parse quiet mode into a verbosity level.
-    if is_quiet:
-        if verbosity > VERBOSITY_NORMAL:
-            exit("Invalid parameters: quiet and verbose called together. Choose one or the other.")
-            verbosity = VERBOSITY_QUIET
-    if verbosity > VERBOSITY_HIGH:
-        exit("That level of verbosity is not supported. Maximum verbosity is -{}.".format(
-             'v' * (VERBOSITY_HIGH - 1)))
     if is_debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    # Add current directory to the path, as this doesn't happen automatically.
-    sys.path.insert(0, os.getcwd())
+    contracts = _get_contracts_or_exit(config_directory)
 
-    # Attempt to locate the package file.
-    package_filename = importlib.util.find_spec(package_name)
-    if not package_filename:
-        logger.debug("sys.path: {}".format(sys.path))
-        exit("Could not find package '{}' in your path.".format(package_name))
-    package = SafeFilenameModule(name=package_name, filename=package_filename.origin)
-
-    # Parse contracts file.
-    if config_directory is None:
-        config_directory = os.getcwd()
-    try:
-        contracts = get_contracts(path=config_directory)
-    except FileNotFoundError as e:
-        exit("{}: {}".format(e.strerror, e.filename))
-    except ContractParseError as e:
-        exit('Error: {}'.format(e))
-
+    package = _get_package(package_name)
     graph = DependencyGraph(package=package)
 
+    verbosity = _normalise_verbosity(verbosity, is_quiet)
     report_class = get_report_class(verbosity)
     report = report_class(graph)
 
@@ -118,3 +95,44 @@ def _main(package_name, config_directory=None, is_debug=False,
         return 1  # Fail
     else:
         return 0  # Pass
+
+
+def _normalise_verbosity(verbosity: int, is_quiet: bool) -> int:
+    """
+    Validate verbosity, and parse quiet mode into a verbosity level.
+    """
+    if is_quiet:
+        if verbosity > VERBOSITY_NORMAL:
+            exit("Invalid parameters: quiet and verbose called together. Choose one or the other.")
+            verbosity = VERBOSITY_QUIET
+    if verbosity > VERBOSITY_HIGH:
+        exit("That level of verbosity is not supported. Maximum verbosity is -{}.".format(
+             'v' * (VERBOSITY_HIGH - 1)))
+    return verbosity
+
+
+def _get_package(package_name: str) -> SafeFilenameModule:
+    """
+    Get the package as a SafeFilenameModule.
+    """
+    # Add current directory to the path, as this doesn't happen automatically.
+    sys.path.insert(0, os.getcwd())
+
+    # Attempt to locate the package file.
+    package_filename = importlib.util.find_spec(package_name)
+    if not package_filename:
+        logger.debug("sys.path: {}".format(sys.path))
+        exit("Could not find package '{}' in your path.".format(package_name))
+    return SafeFilenameModule(name=package_name, filename=package_filename.origin)
+
+
+def _get_contracts_or_exit(config_directory: str) -> List[Contract]:
+    # Parse contracts file.
+    if config_directory is None:
+        config_directory = os.getcwd()
+    try:
+        return get_contracts(path=config_directory)
+    except FileNotFoundError as e:
+        exit("{}: {}".format(e.strerror, e.filename))
+    except ContractParseError as e:
+        exit('Error: {}'.format(e))
