@@ -58,3 +58,9 @@ History
 * Added type annotation and mypy.
 * Build earlier versions of Python using pybackwards.
 * Corrected docs to refer to ``layers.yml`` instead of ``layers.yaml``.
+
+latest
+------
+
+* Fix packaging bug with 0.7.0.
+
