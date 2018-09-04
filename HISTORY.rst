@@ -50,8 +50,8 @@ History
 * Don't analyse children of directories that aren't Python packages.
 * Prevented installing incompatible version of Pydeps (1.6).
 
-latest
-------
+0.7.0 (2018-09-04)
+------------------
 
 * Complete rewrite of static analysis used to build dependency graph.
 * Added quiet and verbose reporting.
