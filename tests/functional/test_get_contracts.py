@@ -46,5 +46,5 @@ def test_get_contracts():
             expected_importer, expected_imported = expected_data['whitelisted_paths'][
                 whitelisted_index]
             assert isinstance(whitelisted_path, ImportPath)
-            assert whitelisted_path.importer == expected_importer
-            assert whitelisted_path.imported == expected_imported
+            assert whitelisted_path.importer == Module(expected_importer)
+            assert whitelisted_path.imported == Module(expected_imported)
