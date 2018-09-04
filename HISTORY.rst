@@ -59,8 +59,8 @@ History
 * Build earlier versions of Python using pybackwards.
 * Corrected docs to refer to ``layers.yml`` instead of ``layers.yaml``.
 
-latest
-------
+0.7.1 (2018-09-04)
+------------------
 
 * Fix packaging bug with 0.7.0.
 
