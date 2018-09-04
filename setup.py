@@ -8,8 +8,6 @@ try:
 except ImportError:
     from setuptools import setup
 
-from setuptools import find_packages
-
 with open('README.rst') as readme_file:
     readme = readme_file.read()
 
@@ -46,7 +44,7 @@ setup(
     include_package_data=True,
     keywords='layer-linter layer-lint',
     name='layer-linter',
-    packages=find_packages(include=['layer_linter']),
+    packages=['layer_linter', 'layer_linter.dependencies'],
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
