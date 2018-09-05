@@ -64,7 +64,8 @@ History
 
 * Fix packaging bug with 0.7.0.
 
-latest
-------
+0.7.2 (2018-09-05)
+------------------
 
 * Fix bug with not checking all submodules of layer.
+
