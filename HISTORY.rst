@@ -64,3 +64,7 @@ History
 
 * Fix packaging bug with 0.7.0.
 
+latest
+------
+
+* Fix bug with not checking all submodules of layer.

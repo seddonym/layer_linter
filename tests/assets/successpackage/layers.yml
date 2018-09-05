@@ -6,7 +6,7 @@ High level:
     - two
     - one
   whitelisted_paths:
-    - successpackage.utils <- successpackage.three
+    - successpackage.utils <- successpackage.three.alpha
 
 Modular:
   packages:

@@ -10,12 +10,71 @@ logger = logging.getLogger('layer_linter')
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 
+class StubDependencyGraph:
+    """
+    Stub of the DependencyGraph for use in tests.
+
+    Args:
+        descendants: Dictionary keyed with Modules, whose values are the descendants of
+                     those modules. This should not include the module itself.
+        paths:       Nested dictionary, in the form:
+
+                     {
+                        upstream_module: {
+                            downstream_module: [downstream_module, ..., upstream_module],
+                            ...
+                        }
+                        ...
+                     }
+                    A call to .find_path(downstream=downstream_module, upstream=upstream_module)
+                    will return the supplied path, if it is present in the dictionary. Otherwise,
+                    the stub will return None.
+    Usage:
+
+        graph = StubDependencyGraph(
+            descendants={
+                Module('foo.one'): [
+                    Module('foo.one'), Module('foo.one.red'), Module('foo.one.green')
+                ],
+                Module('foo.two'): [
+                    Module('foo.two'),
+                ],
+            },
+            paths = {
+                Module('foo.one.green'): {
+                    Module('foo.three.blue.alpha'): [
+                        Module('foo.one.green'), Module('baz'), Module('foo.three.blue.alpha')
+                    ],
+                },
+                ...
+            }
+        )
+
+    """
+    def __init__(self, descendants, paths):
+        self.descendants = descendants
+        self.paths = paths
+
+    def get_descendants(self, module):
+        try:
+            return self.descendants[module]
+        except KeyError:
+            return []
+
+    def find_path(self, downstream, upstream, ignore_paths=None):
+        try:
+            return self.paths[upstream][downstream]
+        except KeyError:
+            return None
+
+
 class TestContractCheck:
     def test_kept_contract(self):
         contract = Contract(
             name='Foo contract',
             packages=(
-                Module('foo'),
+                Module('foo.blue'),
+                Module('foo.green'),
             ),
             layers=(
                 Layer('three'),
@@ -24,29 +83,54 @@ class TestContractCheck:
             ),
             whitelisted_paths=mock.sentinel.whitelisted_paths,
         )
-        dep_graph = mock.Mock()
-        dep_graph.find_path.return_value = None
-        dep_graph.get_descendants.return_value = []
+        graph = StubDependencyGraph(
+            descendants={
+                Module('foo.green.one'): [
+                    Module('foo.green.one.alpha'),
+                    Module('foo.green.one.beta'),
+                ],
+                Module('foo.green.three'): [
+                    Module('foo.green.three.alpha'),
+                    Module('foo.green.three.beta'),
+                ],
+            },
+            paths={
+                # Include some allowed paths.
+                Module('foo.blue.two'): {
+                    # Layer directly importing a layer below it.
+                    Module('foo.blue.three'): [Module('foo.blue.three'), Module('foo.blue.two')],
+                },
+                Module('foo.blue.one'): {
+                    # Layer directly importing two layers below.
+                    Module('foo.blue.three'): [Module('foo.blue.three'), Module('foo.blue.one')],
+                },
+                Module('foo.green.three'): {
+                    # Layer importing higher up layer, but from another package.
+                    Module('foo.blue.one'): [Module('foo.blue.one'), Module('foo.green.three')],
+                },
+                Module('foo.green.three.beta'): {
+                    # Module inside layer importing another module in same layer.
+                    Module('foo.green.three.alpha'): [Module('foo.green.three.alpha'),
+                                                      Module('foo.green.three.beta')],
+                },
+                Module('foo.green.one.alpha'): {
+                    # Module inside layer importing a module inside a lower layer.
+                    Module('foo.green.three.alpha'): [Module('foo.green.three.alpha'),
+                                                      Module('foo.green.one.alpha')]
+                },
+            },
+        )
 
-        contract.check_dependencies(dep_graph)
+        contract.check_dependencies(graph)
 
         assert contract.is_kept is True
-
-        # Check that each of the possible disallowed imports were checked
-        dep_graph.find_path.assert_has_calls((
-            mock.call(downstream=Module('foo.one'), upstream=Module('foo.two'),
-                      ignore_paths=mock.sentinel.whitelisted_paths),
-            mock.call(downstream=Module('foo.one'), upstream=Module('foo.three'),
-                      ignore_paths=mock.sentinel.whitelisted_paths),
-            mock.call(downstream=Module('foo.two'), upstream=Module('foo.three'),
-                      ignore_paths=mock.sentinel.whitelisted_paths),
-        ))
 
     def test_broken_contract(self):
         contract = Contract(
             name='Foo contract',
             packages=(
-                Module('foo'),
+                Module('foo.blue'),
+                Module('foo.green'),
             ),
             layers=(
                 Layer('three'),
@@ -54,29 +138,39 @@ class TestContractCheck:
                 Layer('one'),
             ),
         )
-        dep_graph = mock.Mock()
-        dep_graph.get_descendants.return_value = []
-        # Mock that one imports two and three, and two imports three
-        dep_graph.find_path.side_effect = [
-            None,
-            ['foo.one', 'foo.two'],
-            ['foo.one', 'foo.three'],
-            ['foo.two', 'foo.three']
-        ]
+        graph = StubDependencyGraph(
+            descendants={
+                Module('foo.green.one'): [
+                    Module('foo.green.one.alpha'),
+                    Module('foo.green.one.beta'),
+                ],
+                Module('foo.green.three'): [
+                    Module('foo.green.three.alpha'),
+                    Module('foo.green.three.beta'),
+                ],
+            },
+            paths={
+                Module('foo.blue.two'): {
+                    # An allowed path: layer directly importing a layer below it.
+                    Module('foo.blue.three'): [Module('foo.blue.three'), Module('foo.blue.two')],
+                    # Disallowed path: layer directly importing a layer above it.
+                    Module('foo.blue.one'): [Module('foo.blue.one'), Module('foo.blue.two')],
+                },
+                Module('foo.green.three.alpha'): {
+                    # Module inside layer importing a module inside a higher layer.
+                    Module('foo.green.one.alpha'): [Module('foo.green.one.alpha'),
+                                                    Module('foo.green.three.alpha')],
+                },
+            },
+        )
 
-        contract.check_dependencies(dep_graph)
+        contract.check_dependencies(graph)
 
         assert contract.is_kept is False
-
-        # Check that each of the possible disallowed imports are checked
-        dep_graph.find_path.assert_has_calls((
-            mock.call(downstream=Module('foo.one'), upstream=Module('foo.two'),
-                      ignore_paths=[]),
-            mock.call(downstream=Module('foo.one'), upstream=Module('foo.three'),
-                      ignore_paths=[]),
-            mock.call(downstream=Module('foo.two'), upstream=Module('foo.three'),
-                      ignore_paths=[]),
-        ))
+        assert contract.illegal_dependencies == [
+            [Module('foo.blue.one'), Module('foo.blue.two')],
+            [Module('foo.green.one.alpha'), Module('foo.green.three.alpha')]
+        ]
 
     def test_unchecked_contract_raises_exception(self):
         contract = Contract(
@@ -96,52 +190,6 @@ class TestContractCheck:
         assert 'Cannot check whether contract is ' \
             'kept until check_dependencies is called.' in str(excinfo.value)
 
-    def test_broken_contract_children(self):
-        contract = Contract(
-            name='Foo contract',
-            packages=(
-                Module('foo'),
-            ),
-            layers=(
-                Layer('two'),
-                Layer('one'),
-            ),
-        )
-        dep_graph = mock.Mock()
-        # Mock some deeper submodules
-        dep_graph.get_descendants.side_effect = [
-            # For foo.one
-            [Module('foo.one.alpha'), Module('foo.one.alpha.red'), Module('foo.one.alpha.green'),
-             Module('foo.one.beta')],
-            # For foo.two
-            [],
-        ]
-
-        # Mock that foo.one.alpha.red imports foo.two
-        dep_graph.find_path.side_effect = [
-            None, None,
-            ['foo.one.alpha.red', 'foo.two'],
-            None, None
-        ]
-
-        contract.check_dependencies(dep_graph)
-
-        assert contract.is_kept is False
-
-        # Check that each of the possible disallowed imports are checked
-        dep_graph.find_path.assert_has_calls((
-            mock.call(downstream=Module('foo.one'), upstream=Module('foo.two'),
-                      ignore_paths=[]),
-            mock.call(downstream=Module('foo.one.alpha'), upstream=Module('foo.two'),
-                      ignore_paths=[]),
-            mock.call(downstream=Module('foo.one.alpha.red'), upstream=Module('foo.two'),
-                      ignore_paths=[]),
-            mock.call(downstream=Module('foo.one.alpha.green'), upstream=Module('foo.two'),
-                      ignore_paths=[]),
-            mock.call(downstream=Module('foo.one.beta'), upstream=Module('foo.two'),
-                      ignore_paths=[]),
-        ))
-
     def test_broken_contract_via_other_layer(self):
         # If an illegal import happens via another layer, we don't want to report it
         # (as it will already be reported).
@@ -157,20 +205,24 @@ class TestContractCheck:
                 Layer('one'),
             ),
         )
-        dep_graph = mock.Mock()
-        dep_graph.get_descendants.return_value = []
-        # Mock that one imports two, and two imports three
-        dep_graph.find_path.side_effect = [
-            ['foo.one', 'foo.two'],
-            ['foo.one', 'foo.two', 'foo.three'],
-            ['foo.two', 'foo.three'],
-        ]
+        graph = StubDependencyGraph(
+            descendants={},
+            paths={
+                Module('foo.three'): {
+                    Module('foo.two'): [Module('foo.two'), Module('foo.three')],
+                    Module('foo.one'): [Module('foo.one'), Module('foo.two'), Module('foo.three')],
+                },
+                Module('foo.two'): {
+                    Module('foo.one'): [Module('foo.one'), Module('foo.two')],
+                },
+            },
+        )
 
-        contract.check_dependencies(dep_graph)
+        contract.check_dependencies(graph)
 
         assert contract.illegal_dependencies == [
-            ['foo.one', 'foo.two'],
-            ['foo.two', 'foo.three'],
+            [Module('foo.one'), Module('foo.two')],
+            [Module('foo.two'), Module('foo.three')],
         ]
 
     @pytest.mark.parametrize('longer_first', (True, False))
@@ -185,46 +237,52 @@ class TestContractCheck:
                 Layer('one'),
             ),
         )
-        dep_graph = mock.Mock()
-        dep_graph.get_descendants.side_effect = [
-            # For foo.one
-            ['foo.one.alpha', 'foo.one.alpha.red', 'foo.one.alpha.green', 'foo.one.beta'],
-            # For foo.two
-            [],
-        ]
+
         # These are both dependency violations, but it's more useful just to report
-        # the more direct violation (the second one in this case).
+        # the more direct violation.
         if longer_first:
-            dep_graph.find_path.side_effect = [
-                # foo.one <- foo.two
-                None,
-                # foo.one.alpha <- foo.two
-                ['foo.one.alpha', 'foo.one.alpha.green', 'foo.x.alpha', 'foo.two'],
-                # foo.one.alpha.red <- foo.two
-                ['foo.one.alpha.red', 'foo.one.alpha.green', 'foo.x.alpha', 'foo.two'],
-                # foo.one.alpha.green <- foo.two
-                ['foo.one.alpha.green', 'foo.x.alpha', 'foo.two'],
-                # foo.one.beta <- foo.two
-                None,
-            ]
-        else:
-            dep_graph.find_path.side_effect = [
-                None,
-                ['foo.one.alpha', 'foo.x.alpha', 'foo.two'],
-                None,
-                ['foo.one.alpha.green', 'foo.one.alpha', 'foo.x.alpha', 'foo.two'],
-                None,
-            ]
+            paths = {
+                Module('foo.two'): {
+                    Module('foo.one.alpha'): [
+                        Module('foo.one.alpha'), Module('foo.one.alpha.green'),
+                        Module('foo.another'), Module('foo.two'),
+                    ],
+                    Module('foo.one.alpha.green'): [
+                        Module('foo.one.alpha.green'), Module('foo.another'), Module('foo.two'),
+                    ],
 
-        contract.check_dependencies(dep_graph)
+                },
+            }
+        else:
+            paths = {
+                Module('foo.two'): {
+                    Module('foo.one.alpha'): [
+                        Module('foo.one.alpha'), Module('foo.another'), Module('foo.two'),
+                    ],
+                    Module('foo.one.alpha.green'): [
+                        Module('foo.one.alpha.green'), Module('foo.one.alpha'),
+                        Module('foo.another'), Module('foo.two'),
+                    ],
+
+                },
+            }
+        graph = StubDependencyGraph(
+            descendants={
+                Module('foo.one'): [Module('foo.one.alpha'), Module('foo.one.beta'),
+                                    Module('foo.one.alpha.blue'), Module('foo.one.alpha.green')],
+            },
+            paths=paths,
+        )
+
+        contract.check_dependencies(graph)
 
         if longer_first:
             assert contract.illegal_dependencies == [
-                ['foo.one.alpha.green', 'foo.x.alpha', 'foo.two'],
+                [Module('foo.one.alpha.green'), Module('foo.another'), Module('foo.two')],
             ]
         else:
             assert contract.illegal_dependencies == [
-                ['foo.one.alpha', 'foo.x.alpha', 'foo.two'],
+                [Module('foo.one.alpha'), Module('foo.another'), Module('foo.two')],
             ]
 
 

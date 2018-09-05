@@ -92,8 +92,9 @@ class Contract:
     ) -> List[Module]:
         modules = []
         for downstream_layer in self._get_layers_downstream_of(layer):
-            modules.append(
-                Module("{}.{}".format(package, downstream_layer.name))
+            modules.extend(
+                self._get_modules_in_layer(layer=downstream_layer, package=package,
+                                           dependencies=dependencies)
             )
         return modules
 
