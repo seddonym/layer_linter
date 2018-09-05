@@ -39,8 +39,8 @@ def create_parser():
         # Using a count allows us to increase verbosity levels using -vv, -vvv etc., should they
         # be necessary in future.
         action='count',
-        default=VERBOSITY_NORMAL,
-        dest='verbosity',
+        default=0,
+        dest='verbosity_count',
         help="Increase verbosity."
     )
 
@@ -66,12 +66,16 @@ def create_parser():
 def main():
     parser = create_parser()
     args = parser.parse_args()
-    return _main(args.package_name, args.config_directory, args.is_debug, args.verbosity,
-                 args.is_quiet)
+    return _main(
+        package_name=args.package_name,
+        config_directory=args.config_directory,
+        is_debug=args.is_debug,
+        verbosity_count=args.verbosity_count,
+        is_quiet=args.is_quiet)
 
 
 def _main(package_name, config_directory=None, is_debug=False,
-          verbosity=VERBOSITY_NORMAL, is_quiet=False):
+          verbosity_count=0, is_quiet=False):
 
     if is_debug:
         logging.basicConfig(level=logging.DEBUG)
@@ -81,7 +85,7 @@ def _main(package_name, config_directory=None, is_debug=False,
     package = _get_package(package_name)
     graph = DependencyGraph(package=package)
 
-    verbosity = _normalise_verbosity(verbosity, is_quiet)
+    verbosity = _normalise_verbosity(verbosity_count, is_quiet)
     report_class = get_report_class(verbosity)
     report = report_class(graph)
 
@@ -97,18 +101,30 @@ def _main(package_name, config_directory=None, is_debug=False,
         return 0  # Pass
 
 
-def _normalise_verbosity(verbosity: int, is_quiet: bool) -> int:
+def _normalise_verbosity(verbosity_count: int, is_quiet: bool) -> int:
     """
     Validate verbosity, and parse quiet mode into a verbosity level.
+
+    Args:
+        verbosity_count (int): the number of 'v's passed as command line arguments. For example,
+                               -vv would be 2.
+        is_quiet (bool):       whether the '--quiet' flag was passed.
+
+    Returns:
+        Verbosity level (int): either VERBOSITY_QUIET, VERBOSITY_NORMAL or VERBOSITY_HIGH.
     """
+    VERBOSITY_BY_COUNT = (VERBOSITY_NORMAL, VERBOSITY_HIGH)
+
     if is_quiet:
-        if verbosity > VERBOSITY_NORMAL:
+        if verbosity_count > 0:
             exit("Invalid parameters: quiet and verbose called together. Choose one or the other.")
-        verbosity = VERBOSITY_QUIET
-    if verbosity > VERBOSITY_HIGH:
+        return VERBOSITY_QUIET
+
+    try:
+        return VERBOSITY_BY_COUNT[verbosity_count]
+    except IndexError:
         exit("That level of verbosity is not supported. Maximum verbosity is -{}.".format(
-             'v' * (VERBOSITY_HIGH - 1)))
-    return verbosity
+             'v' * (len(VERBOSITY_BY_COUNT) - 1)))
 
 
 def _get_package(package_name: str) -> SafeFilenameModule:
