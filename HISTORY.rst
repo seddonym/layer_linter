@@ -69,3 +69,7 @@ History
 
 * Fix bug with not checking all submodules of layer.
 
+0.7.3 (2018-09-07)
+------------------
+
+* Drop support for Python 3.4 and 3.5 and adjust packaging.
