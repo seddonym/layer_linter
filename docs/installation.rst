@@ -7,7 +7,7 @@ Installation
 Requirements
 ------------
 
-Layer Linter only supports Python 3.
+Layer Linter currently only supports Python 3.6 - 3.7.
 
 Stable release
 --------------

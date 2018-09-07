@@ -3,10 +3,7 @@
 
 """The setup script."""
 
-try:
-    from py_backwards_packager import setup
-except ImportError:
-    from setuptools import setup
+from setuptools import setup, find_packages
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
@@ -20,10 +17,6 @@ requirements = [
     'click>=6.7,<7',
 ]
 
-setup_requirements = ['pytest-runner', 'py-backwards-packager']
-
-test_requirements = ['pytest']
-
 setup(
     author="David Seddon",
     author_email='david@seddonym.me',
@@ -33,9 +26,8 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
     description="Layer Linter checks that your project follows a custom-defined layered architecture.",
     install_requires=requirements,
@@ -44,10 +36,8 @@ setup(
     include_package_data=True,
     keywords='layer-linter layer-lint',
     name='layer-linter',
-    packages=['layer_linter', 'layer_linter.dependencies'],
-    setup_requires=setup_requirements,
-    test_suite='tests',
-    tests_require=test_requirements,
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
     url='https://github.com/seddonym/layer_linter',
     version='0.7.2',
     zip_safe=False,
@@ -56,5 +46,4 @@ setup(
             'layer-lint = layer_linter.cmdline:main',
         ],
     },
-    py_backwards_targets=['3.4', '3.5']
 )
