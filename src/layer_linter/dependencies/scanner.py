@@ -83,10 +83,6 @@ class PackageScanner:
          Returns:
             Absolute module name for importing (string).
         """
-        if not filename_and_path.startswith(package_directory):
-            raise ValueError('Filename and path should be in the package directory.')
-        if not filename_and_path[-3:] == '.py':
-            raise ValueError('Filename is not a Python file.')
         container_directory, package_name = os.path.split(package_directory)
         internal_filename_and_path = filename_and_path[len(package_directory):]
         internal_filename_and_path_without_extension = internal_filename_and_path[1:-3]

@@ -8,11 +8,14 @@ import importlib
 from .module import SafeFilenameModule
 from .dependencies import DependencyGraph
 from .contract import get_contracts, Contract, ContractParseError
-from .report import get_report_class, VERBOSITY_QUIET, VERBOSITY_NORMAL, VERBOSITY_HIGH
+from .report import (
+    get_report_class, ConsolePrinter, VERBOSITY_QUIET, VERBOSITY_NORMAL, VERBOSITY_HIGH)
 
 
 logger = logging.getLogger(__name__)
 
+EXIT_STATUS_SUCCESS = 0
+EXIT_STATUS_ERROR = 1
 
 def create_parser():
     parser = argparse.ArgumentParser(
@@ -80,12 +83,21 @@ def _main(package_name, config_directory=None, is_debug=False,
     if is_debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    contracts = _get_contracts_or_exit(config_directory)
+    try:
+        contracts = _get_contracts(config_directory)
+    except Exception as e:
+        ConsolePrinter.print_error(str(e))
+        return EXIT_STATUS_ERROR
 
     package = _get_package(package_name)
     graph = DependencyGraph(package=package)
 
-    verbosity = _normalise_verbosity(verbosity_count, is_quiet)
+    try:
+        verbosity = _normalise_verbosity(verbosity_count, is_quiet)
+    except Exception as e:
+        ConsolePrinter.print_error(str(e))
+        return EXIT_STATUS_ERROR
+
     report_class = get_report_class(verbosity)
     report = report_class(graph)
 
@@ -96,9 +108,9 @@ def _main(package_name, config_directory=None, is_debug=False,
     report.output()
 
     if report.has_broken_contracts:
-        return 1  # Fail
+        return EXIT_STATUS_ERROR
     else:
-        return 0  # Pass
+        return EXIT_STATUS_SUCCESS
 
 
 def _normalise_verbosity(verbosity_count: int, is_quiet: bool) -> int:
@@ -117,14 +129,16 @@ def _normalise_verbosity(verbosity_count: int, is_quiet: bool) -> int:
 
     if is_quiet:
         if verbosity_count > 0:
-            exit("Invalid parameters: quiet and verbose called together. Choose one or the other.")
+            raise RuntimeError(
+                "Invalid parameters: quiet and verbose called together. Choose one or the other.")
         return VERBOSITY_QUIET
 
     try:
         return VERBOSITY_BY_COUNT[verbosity_count]
     except IndexError:
-        exit("That level of verbosity is not supported. Maximum verbosity is -{}.".format(
-             'v' * (len(VERBOSITY_BY_COUNT) - 1)))
+        raise RuntimeError(
+            "That level of verbosity is not supported. "
+            "Maximum verbosity is -{}.".format('v' * (len(VERBOSITY_BY_COUNT) - 1)))
 
 
 def _get_package(package_name: str) -> SafeFilenameModule:
@@ -143,13 +157,13 @@ def _get_package(package_name: str) -> SafeFilenameModule:
     return SafeFilenameModule(name=package_name, filename=package_filename.origin)
 
 
-def _get_contracts_or_exit(config_directory: str) -> List[Contract]:
+def _get_contracts(config_directory: str) -> List[Contract]:
     # Parse contracts file.
     if config_directory is None:
         config_directory = os.getcwd()
     try:
         return get_contracts(path=config_directory)
     except FileNotFoundError as e:
-        exit("{}: {}".format(e.strerror, e.filename))
+        raise RuntimeError("{}: {}".format(e.strerror, e.filename))
     except ContractParseError as e:
-        exit('Error: {}'.format(e))
+        raise RuntimeError('Error: {}'.format(e))

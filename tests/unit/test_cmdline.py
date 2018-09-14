@@ -22,9 +22,9 @@ def test_normalise_verbosity(verbosity, is_quiet, expected_result):
         result = _normalise_verbosity(verbosity, is_quiet)
         assert result == expected_result
     else:
-        with patch('builtins.exit') as mock_exit:
+        with pytest.raises(RuntimeError) as e:
             _normalise_verbosity(verbosity, is_quiet)
-            mock_exit.assert_called_once_with(expected_result)
+        assert str(e.value) == expected_result
 
 
 @pytest.mark.parametrize(
@@ -33,7 +33,7 @@ def test_normalise_verbosity(verbosity, is_quiet, expected_result):
 @patch.object(cmdline, 'get_report_class')
 @patch.object(cmdline, 'DependencyGraph')
 @patch.object(cmdline, '_get_package')
-@patch.object(cmdline, '_get_contracts_or_exit')
+@patch.object(cmdline, '_get_contracts')
 @patch.object(cmdline, 'logging')
 def test_debug(mock_logging, mock_get_contracts, mock_get_package, mock_graph,
                mock_get_report_class, is_debug):
