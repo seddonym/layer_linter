@@ -24,7 +24,8 @@ Layer Linter
      :target: https://pyup.io/repos/github/seddonym/layer_linter/
      :alt: Updates
 
-Layer Linter checks that your project follows a custom-defined layered architecture.
+Layer Linter checks that your project follows a custom-defined layered architecture, based on
+its internal dependencies (i.e. the imports between its modules).
 
 
 * Free software: BSD license
@@ -34,18 +35,18 @@ Layer Linter checks that your project follows a custom-defined layered architect
 Overview
 --------
 
-Layer Linter can be used as part of an automated test suite to check that you
-are following a self-imposed layered architecture within your Python project. This
-is particularly useful if you are working on a complex codebase within a team,
-when you want to enforce a particular architectural style.
+Layer Linter is a command line tool to check that you are following a self-imposed
+architecture within your Python project. It does this by analysing the internal
+imports between all the modules in your code base, and compares this
+against a set of simple rules that you provide in a ``layers.yml`` file.
 
-To define how layers work within your project, you create a ``layers.yml`` file.
-This file prescribes the order in which different modules within your project may
-import from each other.
+For example, you can use it to check that no modules inside ``myproject.foo``
+import from any modules inside ``myproject.bar``, even indirectly.
 
-Running the ``layer-lint`` command will parse the file, analyse your project's
-internal dependencies within your project, and error if you are violating
-your prescribed architecture.
+This is particularly useful if you are working on a complex codebase within a team,
+when you want to enforce a particular architectural style. In this case you can add
+Layer Linter to your deployment pipeline, so that any code that does not follow
+the architecture will fail tests.
 
 Quick start
 -----------
@@ -54,25 +55,30 @@ Install Layer Linter::
 
     pip install layer-linter
 
-Create a ``layers.yml`` in the root of your project, in this format:
+Decide on the dependency flows you wish to check. In this example, we have
+organised our project into three subpackages, ``myproject.high``, ``myproject.medium``
+and ``myproject.low``.
+
+Create a ``layers.yml`` in the root of your project. For example:
 
 .. code-block:: none
 
     My Layers Contract:
       packages:
-        - myproject.packageone
-        - myproject.packagetwo
-        - myproject.packagethree
+        - myproject
       layers:
-        - highlevelmodule
-        - mediumlevelmodule
-        - lowlevelmodule
+        - high
+        - medium
+        - low
+
+(This contract tells Layer Linter that the order of the layers runs from ``low`` at the bottom
+to ``high`` at the top. Layers higher up can import ones lower down, but not the other way around.)
 
 From your project root, run::
 
     layer-lint myproject
 
-If your code violates the contract, you will see an error message as follows:
+If your code violates the contract, you will see an error message something like this:
 
 .. code-block:: none
 
@@ -100,8 +106,13 @@ If your code violates the contract, you will see an error message as follows:
     -----------------
 
 
-    1. myproject.packagetwo.lowlevelmodule imports myproject.packagetwo.highlevelmodule:
+    1. myproject.low.x imports myproject.high.y:
 
-        myproject.packagetwo.lowlevelmodule <-
+        myproject.low.x <-
         myproject.utils <-
-        myproject.packagetwo.highlevelmodule
+        myproject.high.y
+
+For more details on the what you can do in your `layers.yml`, see
+`Core Concepts`_.
+
+.. _Core Concepts: https://layer-linter.readthedocs.io/en/latest/concepts.html
