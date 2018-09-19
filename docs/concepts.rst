@@ -2,151 +2,112 @@
 Core concepts
 =============
 
-Layer Linter has two key concepts, the *Layer* and the *Contract*.
+The Dependency Graph
+--------------------
 
-Layers are a concept used in software architecture. They are used to describe
-the organizing of an application into distinct sections, or 'layers'.
-Each layer is concerned with a different level of detail. For example,
-a three-tier architecture may involve a data layer, a domain layer and an
-interface layer. The data layer is concerned with the lowest level (storage),
-while the interface layer is concerned with the highest level (receiving/validating user input).
-In the middle is the domain layer, which takes care of business logic.
+At the heart of Layer Linter is a graph of internal dependencies within
+a Python code base. This is a `graph in a mathematical sense`_: a collection
+of items with relationships between them. In this case, the items are
+Python modules, and the relationships are imports between them.
 
-Typically, the lower level layers will be ignorant of higher levels. This means
-that something in the domain layer can use utilities provided by the data layer,
+.. _graph in a mathematical sense: https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)
+
+For example, a project named ``pets`` with two modules, where ``pets.dogs`` imports ``pets.cats``, would have a graph
+like this:
+
+.. image:: img/simple-graph.png
+    :align: center
+
+Note the direction of the arrow, which we'll use throughout: the arrow points from the imported
+module into the importing module.
+
+If the project was larger, it would have a more complex graph:
+
+.. image:: img/complex-graph.png
+    :align: center
+
+When you run Layer Linter, it statically analyses all of your
+code to produce a graph like this. (Note: these are just visual representations of the underlying data structure;
+Layer Linter has no visual output.)
+
+Layers
+------
+
+Layers are a concept used in software architecture.
+They describe an application organized into distinct sections, or 'layers'.
+
+In such an architecture, lower layers should be ignorant of higher ones. This means
+that code in a higher layer can use utilities provided in a lower layer,
 but not the other way around. In other words, there is a dependency flow from
 low to high.
 
-Layer Linter focuses on this dependency flow within a single Python codebase. It
-sees layers as sets of Python modules or packages that exist at the same
-level of the project hierarchy, and have a prescribed dependency flow.
+In Python, you can think of a layer as a single ``.py`` file, or a package containing
+multiple ``.py`` files. Any file within a higher up layer can import from any file lower down,
+but not the other way around.
 
-Simple 3-tier architecture
---------------------------
+.. image:: img/layers.png
+    :align: center
 
-The three-tier architecture described above might be organised in Python the following way:
-
-.. code-block:: none
-
-    myproject/
-        interface.py
-        domain.py
-        data.py
-
-However, in Python there is no built in way of enforcing the dependency flow of
-``data`` to ``domain`` to ``interface``. This is where the concept of a *Contract* comes in.
-You can use a contract to prescribe this dependency flow. This can be represented
-in yaml format:
-
-.. code-block:: none
-
-    Three-tier contract:
-        packages:
-            myproject
-        layers:
-            - interface
-            - domain
-            - data
-
-This has three components:
-
-1. **Name**: in this case, 'Three-tier contract'. This can be anything you like,
-   and is just used when reporting a broken contract.
-2. **Packages**: This lists each package that contains the layers. In this case,
-   our layers are at the top level, so we only specify the top-level package.
-3. **Layers**: A list of the modules (or subpackages) to be treated as layers.
-   The order runs from high level to low level.
-
-N.B. Layers do not have to be standalone modules (i.e. single ``.py`` files). The
-contract above could also apply to a codebase whose layers are subpackages like this:
-
-.. code-block:: none
-
-    myproject/
-        interface/
-            __init__.py
-            urls.py
-            views.py
-            forms.py
-        domain/
-            __init__.py
-            billing.py
-            products.py
-            users.py
-        data/
-            __init__.py
-            billing.py
-            products.py
-            users.py
-
-Modular layers
---------------
-
-An alternative, more modular style is to implement layers as a repeated pattern
-*within* subpackages, like so:
-
-.. code-block:: none
-
-    myproject/
-        billing/
-            interface.py
-            domain.py
-            data.py
-        products/
-            interface.py
-            domain.py
-            data.py
-        users/
-            interface.py
-            domain.py
-            data.py
-
-This could be described in a contract as follows:
-
-.. code-block:: none
-
-    Modular Contract:
-        packages:
-            - myproject.billing
-            - myproject.products
-            - myproject.users
-        layers:
-            - interface
-            - domain
-            - data
-
-Multiple contracts
-------------------
-
-You may also wish to have multiple contracts. Take the following example:
-
-.. code-block:: none
-
-    Top level:
-        packages:
-            myproject
-        layers:
-            - billing
-            - products
-            - users
-
-    Modular three-tier:
-        packages:
-            - myproject.billing
-            - myproject.products
-            - myproject.users
-        layers:
-            - interface
-            - domain
-            - data
-
-This would enforce dependency flow both *within your modules* (``data`` to ``domain`` to ``interface``)
-and also *between them* (``users`` to ``products`` to ``billing``).
+In the above example, ``pets.cats.purring`` could import ``pets.rabbits`` but not ``pets.dogs.walkies``.
+``pets.dogs.walkies`` could import any other module, as it is in the highest layer.
 
 (For further reading on Layers, see
 `the Wikipedia page on Multitier Architecture`_).
 
 .. _`the Wikipedia page on Multitier Architecture`: https://en.wikipedia.org/wiki/Multitier_architecture
+
+
+Contracts
+---------
+
+*Contracts* are how you describe your architecture to Layer Linter. You write them in a ``layers.yml`` file. Each
+Contract contains two lists, ``layers`` and ``packages``.
+
+- ``layers`` takes the form of an ordered list with the name of each layer module, *relative to its parent package*.
+  The order is from high level layer to low level layer.
+- ``packages`` lists the parent modules of the layers.  If you have only one set of layers,
+  there will be only one package: the top level package. However, you could choose to have a repeating
+  pattern of layers across multiple subpackages; in which case, you would list each of those containing
+  packages.
+
+You can have as many of these contracts as you like, and you give each one a name.
+
+**Example: single package contract**
+
+The three-layered structure described earlier can be described by the following contract. Note that the layers have names
+relative to the single, containing package.
+
+.. code-block:: none
+
+    Three-tier contract:
+        packages:
+            - pets
+        layers:
+            - dogs
+            - cats
+            - rabbits
+
+**Example: multiple package contract**
+
+A more complex architecture might involve the same layers repeated across multiple packages, like this:
+
+.. image:: img/modular-layers.png
+    :align: center
+
+In this case, rather than have three contracts, one for each package, you may list all the packages in a single contract.
+The order of the packages is not important.
+
+.. code-block:: none
+
+    Modular contract:
+        packages:
+            - pets.dogs
+            - pets.cats
+            - pets.rabbits
+        layers:
+            - personality
+            - traits
+            - physical
 
 Whitelisting paths
 ------------------
@@ -154,9 +115,8 @@ Whitelisting paths
 Sometimes, you may wish to tolerate certain dependencies that do not adhere to your contract.
 To do this, include them as *whitelisted paths* in your contract.
 
-Let's say you have a project that follows a three tier architecture, but you
-have a ``utils`` module that introduces a circular dependency between two of your layers. The report
-might look something like this:
+Let's say you have a project that has a ``utils`` module that introduces an illegal dependency between two
+of your layers. The report might look something like this:
 
 .. code-block:: none
 
@@ -168,27 +128,25 @@ might look something like this:
     My layer contract
     -----------------
 
-    1. myproject.packagetwo.lowlevelmodule imports myproject.packagetwo.highlevelmodule:
+    1. pets.cats.whiskers imports pets.dogs.walkies:
 
-        myproject.packagetwo.lowlevelmodule <-
-        myproject.utils <-
-        myproject.packagetwo.highlevelmodule
+        pets.cats.whiskers <-
+        pets.utils <-
+        pets.dogs.walkies
 
-If you want to suppress this error, you can add one component of the path to the contract like so:
+To suppress this error, you may add one component of the path to the contract like so:
 
 .. code-block:: none
 
-    My Layers Contract:
-      packages:
-        - myproject.packageone
-        - myproject.packagetwo
-        - myproject.packagethree
-      layers:
-        - highlevelmodule
-        - mediumlevelmodule
-        - lowlevelmodule
-      whitelisted_paths:
-        - myproject.packagetwo.lowlevelmodule <- myproject.utils
+    Three-tier contract:
+        packages:
+            - pets
+        layers:
+            - dogs
+            - cats
+            - rabbits
+        whitelisted_paths:
+            - pets.cats.whiskers <- pets.utils
 
 Running the linter again will show the contract passing.
 
