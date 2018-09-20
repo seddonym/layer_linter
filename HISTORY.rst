@@ -74,8 +74,8 @@ History
 
 * Drop support for Python 3.4 and 3.5 and adjust packaging.
 
-latest
-------
+0.7.4 (2018-09-20)
+------------------
 
 * Tweak command line error handling.
 * Improve README and `Core Concepts` documentation.
