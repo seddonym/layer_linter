@@ -29,10 +29,10 @@ def create_parser():
     )
 
     parser.add_argument(
-        '--config-directory',
+        '--config',
         required=False,
-        help="The directory containing your layers.yml. If not supplied, Layer Linter will "
-             "look inside the current directory.",
+        help="The YAML file describing your contract(s). If not supplied, Layer Linter will "
+             "look for a file called 'layers.yml' inside the current directory.",
 
     )
 
@@ -71,20 +71,20 @@ def main():
     args = parser.parse_args()
     return _main(
         package_name=args.package_name,
-        config_directory=args.config_directory,
+        config_filename=args.config,
         is_debug=args.is_debug,
         verbosity_count=args.verbosity_count,
         is_quiet=args.is_quiet)
 
 
-def _main(package_name, config_directory=None, is_debug=False,
+def _main(package_name, config_filename=None, is_debug=False,
           verbosity_count=0, is_quiet=False):
 
     if is_debug:
         logging.basicConfig(level=logging.DEBUG)
 
     try:
-        contracts = _get_contracts(config_directory)
+        contracts = _get_contracts(config_filename)
     except Exception as e:
         ConsolePrinter.print_error(str(e))
         return EXIT_STATUS_ERROR
@@ -157,12 +157,12 @@ def _get_package(package_name: str) -> SafeFilenameModule:
     return SafeFilenameModule(name=package_name, filename=package_filename.origin)
 
 
-def _get_contracts(config_directory: str) -> List[Contract]:
+def _get_contracts(config_filename: str) -> List[Contract]:
     # Parse contracts file.
-    if config_directory is None:
-        config_directory = os.getcwd()
+    if config_filename is None:
+        config_filename = os.path.join(os.getcwd(), 'layers.yml')
     try:
-        return get_contracts(path=config_directory)
+        return get_contracts(filename=config_filename)
     except FileNotFoundError as e:
         raise RuntimeError("{}: {}".format(e.strerror, e.filename))
     except ContractParseError as e:

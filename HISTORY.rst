@@ -79,3 +79,8 @@ History
 
 * Tweak command line error handling.
 * Improve README and `Core Concepts` documentation.
+
+latest
+------
+
+* Replace ``--config-directory`` parameter with ``--config`` parameter, which takes a file name instead.

@@ -39,14 +39,17 @@ class TestMain:
         result = _main('failurepackage', verbosity_count=verbosity_count, is_quiet=is_quiet)
         assert result == 1
 
-    def test_specify_config_directory(self, verbosity_count, is_quiet, should_always_fail):
+    def test_specify_config_file(self, verbosity_count, is_quiet, should_always_fail):
         path = os.path.join(assets_path, 'successpackage')
         os.chdir(path)
         sys.path.append(path)
-        yaml_path = os.path.join(os.path.dirname(__file__),
-                                 '..', 'assets', 'yaml_directory')
-        result = _main('successpackage', yaml_path,
-                     verbosity_count=verbosity_count, is_quiet=is_quiet)
+
+
+        result = _main(
+            'successpackage',
+            config_filename='layers_alternative.yml',
+            verbosity_count=verbosity_count,
+            is_quiet=is_quiet)
 
         if should_always_fail:
             assert result == 1

@@ -7,9 +7,9 @@ from layer_linter.module import Module
 
 def test_get_contracts():
     dirname = os.path.dirname(__file__)
-    path = os.path.join(dirname, '..', 'assets', 'singlecontractfile')
+    filename = os.path.join(dirname, '..', 'assets', 'singlecontractfile', 'layers.yml')
 
-    contracts = get_contracts(path)
+    contracts = get_contracts(filename)
 
     assert len(contracts) == 2
     expected_contracts = [
