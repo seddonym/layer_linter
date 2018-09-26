@@ -12,6 +12,6 @@ pytest==3.6.4
 pytest-runner==2.11.1
 pytest-cov==2.5.1
 codecov==2.0.15
-mypy==0.620
+mypy==0.630
 setuptools==40.2.0
 tox-pyenv==1.1.0
