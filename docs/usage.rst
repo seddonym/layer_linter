@@ -52,8 +52,8 @@ Running this will check that your project adheres to the contracts in your ``lay
 
 - Optional arguments:
 
-    - ``--config-directory``: The directory containing your ``layers.yml``. If not
-      supplied, Layer Linter will look in the current directory.
+    - ``--config``: The YAML file describing your layer contract(s). If not
+      supplied, Layer Linter will look for a file called ``layers.yml`` in the current directory.
     - ``--quiet``: Do not output anything if the contracts are all adhered to.
     - ``--verbose`` (or ``-v``): Output a more verbose report.
     - ``--debug``: Output debug messages when running the linter. No parameters required.
@@ -64,8 +64,8 @@ Default usage:
 
     layer-lint myproject
 
-Custom ``layers.yml`` location:
+Using a different filename or location instead of ``layers.yml``:
 
 .. code-block:: none
 
-    layer-lint myproject --config-directory /path/to/directory
+    layer-lint myproject --config path/to/alternative.yml

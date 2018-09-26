@@ -182,23 +182,17 @@ def contract_from_yaml(key: str, data: Dict) -> Contract:
     )
 
 
-def get_contracts(path: str) -> List[Contract]:
-    """Given a path to a project, read in any contracts from a layers.yml file.
-    Args:
-        path (string): the path to the project root.
-    Returns:
-        A list of Contract instances.
+def get_contracts(filename: str) -> List[Contract]:
+    """Read in any contracts from the given filename.
     """
     contracts = []
 
-    file_path = os.path.join(path, 'layers.yml')
-
-    with open(file_path, 'r') as file:
+    with open(filename, 'r') as file:
         try:
             data_from_yaml = yaml.load(file)
         except Exception as e:
             logger.debug(e)
-            raise ContractParseError('Could not parse {}.'.format(file_path))
+            raise ContractParseError('Could not parse {}.'.format(filename))
         for key, data in data_from_yaml.items():
             contracts.append(contract_from_yaml(key, data))
 
