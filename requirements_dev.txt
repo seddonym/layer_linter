@@ -10,7 +10,7 @@ sphinx_rtd_theme==0.4.0
 twine==1.10.0
 pytest==3.6.4
 pytest-runner==2.11.1
-pytest-cov==2.5.1
+pytest-cov==2.6.0
 codecov==2.0.15
 mypy==0.620
 setuptools==40.2.0
