@@ -31,7 +31,7 @@ Pygments==2.2.0
 pyparsing==2.2.1
 pytest==3.6.4
 pytest-cov==2.5.1
-pytest-runner==2.11.1
+pytest-runner==4.2
 pytz==2018.5
 PyYAML==3.13
 requests==2.19.1
