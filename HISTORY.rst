@@ -80,7 +80,7 @@ History
 * Tweak command line error handling.
 * Improve README and `Core Concepts` documentation.
 
-latest
-------
+0.8.0 (2018-09-29)
+------------------
 
 * Replace ``--config-directory`` parameter with ``--config`` parameter, which takes a file name instead.
