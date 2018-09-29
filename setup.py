@@ -43,7 +43,8 @@ setup(
     zip_safe=False,
     entry_points={
         'console_scripts': [
-            'layer-lint = layer_linter.cmdline:main',
+            'layer-lint = layer_linter.cmdline.layer_lint:main',
+            'listimports = layer_linter.cmdline.listimports:main',
         ],
     },
 )

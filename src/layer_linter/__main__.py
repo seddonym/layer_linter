@@ -1,4 +1,4 @@
-from .cmdline import main
+from .cmdline.layerlint import main
 
 
 if __name__ == '__main__':

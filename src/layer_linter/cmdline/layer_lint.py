@@ -5,10 +5,10 @@ import sys
 import logging
 import importlib
 
-from .module import SafeFilenameModule
-from .dependencies import DependencyGraph
-from .contract import get_contracts, Contract, ContractParseError
-from .report import (
+from layer_linter.module import SafeFilenameModule
+from layer_linter.dependencies import DependencyGraph
+from layer_linter.contract import get_contracts, Contract, ContractParseError
+from layer_linter.report import (
     get_report_class, ConsolePrinter, VERBOSITY_QUIET, VERBOSITY_NORMAL, VERBOSITY_HIGH)
 
 
