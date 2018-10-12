@@ -2,11 +2,11 @@ Layer Linter architecture:
   packages:
     - layer_linter
   layers:
-    - cmdline
+    - module
     - reports
+    - cmdline
     - contract
     - dependencies
-    - module
 
 Dependencies subpackage:
     packages:
