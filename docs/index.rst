@@ -6,8 +6,8 @@
    :caption: Contents:
 
    installation
-   concepts
    usage
+   concepts
    contributing
    authors
    history

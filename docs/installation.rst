@@ -27,8 +27,8 @@ you through the process.
 .. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
 
 
-From sources
-------------
+Development version
+-------------------
 
 The sources for Layer Linter can be downloaded from the `Github repo`_.
 
