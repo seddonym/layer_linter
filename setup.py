@@ -21,7 +21,7 @@ setup(
     author="David Seddon",
     author_email='david@seddonym.me',
     classifiers=[
-        'Development Status :: 3 - Beta',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
