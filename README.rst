@@ -23,10 +23,15 @@ Layer Linter
 Layer Linter checks that your project follows a custom-defined layered architecture, based on
 its internal dependencies (i.e. the imports between its modules).
 
-
 * Free software: BSD license
 * Documentation: https://layer-linter.readthedocs.io.
 
+**Warning:** This software is currently in beta. This means there may be changes that break backward
+compatibility. However, due to it being a development tool (rather than something that needs to be installed
+on a production system), it should be suitable for inclusion in your testing pipeline. It also means we actively
+encourage people to try it out and `submit bug reports`_.
+
+.. _submit bug reports: https://layer-linter.readthedocs.io/en/stable/contributing.html#report-bugs
 
 Overview
 --------
