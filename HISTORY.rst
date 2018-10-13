@@ -84,3 +84,10 @@ History
 ------------------
 
 * Replace ``--config-directory`` parameter with ``--config`` parameter, which takes a file name instead.
+
+0.9.0 (2018-10-13)
+------------------
+
+* Moved to beta version.
+* Improved documentation.
+* Better handling of invalid package names passed to command line.
