@@ -89,7 +89,12 @@ def _main(package_name, config_filename=None, is_debug=False,
         ConsolePrinter.print_error(str(e))
         return EXIT_STATUS_ERROR
 
-    package = _get_package(package_name)
+    try:
+        package = _get_package(package_name)
+    except ValueError as e:
+        _print_package_name_error_and_help(str(e))
+        return EXIT_STATUS_ERROR
+
     graph = DependencyGraph(package=package)
 
     try:
@@ -144,7 +149,16 @@ def _normalise_verbosity(verbosity_count: int, is_quiet: bool) -> int:
 def _get_package(package_name: str) -> SafeFilenameModule:
     """
     Get the package as a SafeFilenameModule.
+
+    Raises ValueError, with appropriate user-facing message, if the package name is
+    not valid.
     """
+    if '.' in package_name:
+        raise ValueError("Package name must be the root name, no '.' allowed.")
+    if ('/' in package_name) or ('\\' in package_name):
+        raise ValueError("The package name should not be a directory, it should be the name of "
+                         "the importable Python package.")
+
     # Add current directory to the path, as this doesn't happen automatically.
     sys.path.insert(0, os.getcwd())
 
@@ -152,7 +166,7 @@ def _get_package(package_name: str) -> SafeFilenameModule:
     package_filename = importlib.util.find_spec(package_name)
     if not package_filename:
         logger.debug("sys.path: {}".format(sys.path))
-        exit("Could not find package '{}' in your path.".format(package_name))
+        raise ValueError("Could not find package '{}' in your Python path.".format(package_name))
     assert package_filename.origin  # For type checker.
     return SafeFilenameModule(name=package_name, filename=package_filename.origin)
 
@@ -167,3 +181,32 @@ def _get_contracts(config_filename: str) -> List[Contract]:
         raise RuntimeError("{}: {}".format(e.strerror, e.filename))
     except ContractParseError as e:
         raise RuntimeError('Error: {}'.format(e))
+
+
+def _print_package_name_error_and_help(error_text):
+    ConsolePrinter.print_heading('Invalid package name',
+                                 ConsolePrinter.HEADING_LEVEL_TWO,
+                                 ConsolePrinter.ERROR)
+    ConsolePrinter.print_error(error_text)
+    ConsolePrinter.new_line()
+    ConsolePrinter.print_heading('Tip', ConsolePrinter.HEADING_LEVEL_THREE,
+                                 ConsolePrinter.ERROR)
+    ConsolePrinter.print_error('Your package should either be in the current working directory, ')
+    ConsolePrinter.print_error('or installed (e.g. in your virtual environment).')
+    ConsolePrinter.new_line()
+    ConsolePrinter.print_error('If your package has a setup.py, the easiest way to install it is ')
+    ConsolePrinter.print_error('to run the following command, which installs it, while keeping ')
+    ConsolePrinter.print_error('it editable:')
+    ConsolePrinter.new_line()
+    ConsolePrinter.indent_cursor()
+    ConsolePrinter.print_error('pip install -e path/to/setup.py')
+    ConsolePrinter.new_line()
+    ConsolePrinter.print_error("Alternatively, you may run Layer Linter from the directory that ")
+    ConsolePrinter.print_error("contains your package directory. If your layers.yml is located ")
+    ConsolePrinter.print_error("elsewhere, you may specify its file path using the config flag. ")
+    ConsolePrinter.print_error("For example:")
+    ConsolePrinter.new_line()
+    ConsolePrinter.indent_cursor()
+    ConsolePrinter.print_error(
+        'layer-lint mypackage --config path/to/layers.yml')
+    ConsolePrinter.new_line()
