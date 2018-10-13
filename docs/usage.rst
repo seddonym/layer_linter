@@ -14,7 +14,7 @@ The file contains one or more contracts, in the following format:
 
 .. code-block:: none
 
-    [Contract name]
+    [Contract name]:
         packages:
             - [package]
             [...]

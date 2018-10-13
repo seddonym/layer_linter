@@ -23,10 +23,15 @@ Layer Linter
 Layer Linter checks that your project follows a custom-defined layered architecture, based on
 its internal dependencies (i.e. the imports between its modules).
 
-
 * Free software: BSD license
 * Documentation: https://layer-linter.readthedocs.io.
 
+**Warning:** This software is currently in beta. This means there may be changes that break backward
+compatibility. However, due to it being a development tool (rather than something that needs to be installed
+on a production system), it should be suitable for inclusion in your testing pipeline. It also means we actively
+encourage people to try it out and `submit bug reports`_.
+
+.. _submit bug reports: https://layer-linter.readthedocs.io/en/stable/contributing.html#report-bugs
 
 Overview
 --------
@@ -53,7 +58,8 @@ Install Layer Linter::
 
 Decide on the dependency flows you wish to check. In this example, we have
 organised our project into three subpackages, ``myproject.high``, ``myproject.medium``
-and ``myproject.low``.
+and ``myproject.low``. These subpackages are known as *layers*. Note: layers must
+have the same parent package (i.e. all be in the same directory).
 
 Create a ``layers.yml`` in the root of your project. For example:
 
@@ -70,7 +76,9 @@ Create a ``layers.yml`` in the root of your project. For example:
 (This contract tells Layer Linter that the order of the layers runs from ``low`` at the bottom
 to ``high`` at the top. Layers higher up can import ones lower down, but not the other way around.)
 
-From your project root, run::
+Note that the package is an absolute name, while the layers are relative to the package.
+
+Now, from your project root, run::
 
     layer-lint myproject
 
@@ -108,7 +116,6 @@ If your code violates the contract, you will see an error message something like
         myproject.utils <-
         myproject.high.y
 
-For more details on the what you can do in your `layers.yml`, see
-`Core Concepts`_.
+For more details, see `Usage`_.
 
-.. _Core Concepts: https://layer-linter.readthedocs.io/en/latest/concepts.html
+.. _Usage: https://layer-linter.readthedocs.io/en/latest/usage.html
