@@ -1,5 +1,5 @@
 High level:
-  packages:
+  containers:
     - successpackage
   layers:
     - three
@@ -9,7 +9,7 @@ High level:
     - successpackage.utils <- successpackage.three.alpha
 
 Modular:
-  packages:
+  containers:
     - successpackage.one
     - successpackage.two
     - successpackage.three

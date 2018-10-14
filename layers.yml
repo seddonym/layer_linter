@@ -1,5 +1,5 @@
 Layer Linter architecture:
-  packages:
+  containers:
     - layer_linter
   layers:
     - cmdline
@@ -9,7 +9,7 @@ Layer Linter architecture:
     - module
 
 Dependencies subpackage:
-    packages:
+    containers:
         - layer_linter.dependencies
     layers:
         - graph

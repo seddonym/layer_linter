@@ -1,5 +1,5 @@
 High level:
-  packages:
+  containers:
     - failurepackage
   layers:
     - three
@@ -7,7 +7,7 @@ High level:
     - one
 
 Modular:
-  packages:
+  containers:
     - failurepackage.one
     - failurepackage.two
     - failurepackage.three

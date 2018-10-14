@@ -80,7 +80,7 @@ relative to the single, containing package.
 .. code-block:: none
 
     Three-tier contract:
-        packages:
+        containers:
             - pets
         layers:
             - dogs
@@ -100,7 +100,7 @@ The order of the packages is not important.
 .. code-block:: none
 
     Modular contract:
-        packages:
+        containers:
             - pets.dogs
             - pets.cats
             - pets.rabbits
@@ -139,7 +139,7 @@ To suppress this error, you may add one component of the path to the contract li
 .. code-block:: none
 
     Three-tier contract:
-        packages:
+        containers:
             - pets
         layers:
             - dogs

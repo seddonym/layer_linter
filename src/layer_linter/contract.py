@@ -27,10 +27,10 @@ class Layer:
 
 
 class Contract:
-    def __init__(self, name: str, packages: List[Module], layers: List[Layer],
+    def __init__(self, name: str, containers: List[Module], layers: List[Layer],
                  whitelisted_paths: Optional[List[ImportPath]] = None) -> None:
         self.name = name
-        self.packages = packages
+        self.containers = containers
         self.layers = layers
         self.whitelisted_paths = whitelisted_paths if whitelisted_paths else []
 
@@ -39,18 +39,18 @@ class Contract:
 
         logger.debug('Checking dependencies for contract {}...'.format(self))
 
-        for package in self.packages:
+        for container in self.containers:
             for layer in reversed(self.layers):
-                self._check_layer_does_not_import_downstream(layer, package, dependencies)
+                self._check_layer_does_not_import_downstream(layer, container, dependencies)
 
-    def _check_layer_does_not_import_downstream(self, layer: Layer, package: Module,
+    def _check_layer_does_not_import_downstream(self, layer: Layer, container: Module,
                                                 dependencies: DependencyGraph) -> None:
 
-        logger.debug("Layer '{}' in package '{}'.".format(layer, package))
+        logger.debug("Layer '{}' in container '{}'.".format(layer, container))
 
-        modules_in_this_layer = self._get_modules_in_layer(layer, package, dependencies)
+        modules_in_this_layer = self._get_modules_in_layer(layer, container, dependencies)
         modules_in_downstream_layers = self._get_modules_in_downstream_layers(
-            layer, package, dependencies)
+            layer, container, dependencies)
         logger.debug('Modules in this layer: {}'.format(modules_in_this_layer))
         logger.debug('Modules in downstream layer: {}'.format(modules_in_downstream_layers))
 
@@ -64,23 +64,23 @@ class Contract:
                     ignore_paths=self.whitelisted_paths,
                 )
                 logger.debug('Path is {}.'.format(path))
-                if path and not self._path_is_via_another_layer(path, layer, package):
+                if path and not self._path_is_via_another_layer(path, layer, container):
                     logger.debug('Illegal dependency found: {}'.format(path))
                     self._update_illegal_dependencies(path)
 
     def _get_modules_in_layer(
-        self, layer: Layer, package: Module, dependencies: DependencyGraph
+        self, layer: Layer, container: Module, dependencies: DependencyGraph
     ) -> List[Module]:
         """
         Args:
             layer: The Layer object.
-            package: absolute name of the package containing the layer (string).
+            container: absolute name of the package containing the layer (string).
             dependencies: the DependencyGraph object.
         Returns:
             List of modules names within that layer, including the layer module itself.
             Includes grandchildren and deeper.
         """
-        layer_module = Module("{}.{}".format(package, layer.name))
+        layer_module = Module("{}.{}".format(container, layer.name))
         modules = [layer_module]
         modules.extend(
             dependencies.get_descendants(layer_module)
@@ -88,21 +88,21 @@ class Contract:
         return modules
 
     def _get_modules_in_downstream_layers(
-        self, layer: Layer, package: Module, dependencies: DependencyGraph
+        self, layer: Layer, container: Module, dependencies: DependencyGraph
     ) -> List[Module]:
         modules = []
         for downstream_layer in self._get_layers_downstream_of(layer):
             modules.extend(
-                self._get_modules_in_layer(layer=downstream_layer, package=package,
+                self._get_modules_in_layer(layer=downstream_layer, container=container,
                                            dependencies=dependencies)
             )
         return modules
 
-    def _path_is_via_another_layer(self, path, current_layer, package):
+    def _path_is_via_another_layer(self, path, current_layer, container):
         other_layers = list(copy(self.layers))
         other_layers.remove(current_layer)
 
-        layer_modules = ['{}.{}'.format(package, layer.name) for layer in other_layers]
+        layer_modules = ['{}.{}'.format(container, layer.name) for layer in other_layers]
         modules_via = path[1:-1]
 
         return any(path_module in layer_modules for path_module in modules_via)
@@ -160,9 +160,9 @@ def contract_from_yaml(key: str, data: Dict) -> Contract:
     for layer_name in data['layers']:
         layers.append(Layer(layer_name))
 
-    packages: List[Module] = []
-    for package_name in data['packages']:
-        packages.append(Module(package_name))
+    containers: List[Module] = []
+    for package_name in data['containers']:
+        containers.append(Module(package_name))
 
     whitelisted_paths: List[ImportPath] = []
     for whitelist_data in data.get('whitelisted_paths', []):
@@ -176,7 +176,7 @@ def contract_from_yaml(key: str, data: Dict) -> Contract:
 
     return Contract(
         name=key,
-        packages=packages,
+        containers=containers,
         layers=layers,
         whitelisted_paths=whitelisted_paths,
     )
