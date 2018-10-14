@@ -34,22 +34,29 @@ Layers
 ------
 
 Layers are a concept used in software architecture.
-They describe an application organized into distinct sections, or 'layers'.
+They describe an application organized into distinct sections, or *layers*.
 
 In such an architecture, lower layers should be ignorant of higher ones. This means
 that code in a higher layer can use utilities provided in a lower layer,
 but not the other way around. In other words, there is a dependency flow from
 low to high.
 
+**Layers in Python**
+
 In Python, you can think of a layer as a single ``.py`` file, or a package containing
-multiple ``.py`` files. Any file within a higher up layer can import from any file lower down,
-but not the other way around.
+multiple ``.py`` files. This layer is grouped with other layers, all sharing a common parent package:
+in other words, a group of layers will all be in the same directory, at the same level.
+Layer Linter calls this common parent a *container*.
+
+Within a single group of layers, any file within a higher up layer may import from any file lower down,
+but not the other way around - even indirectly.
 
 .. image:: img/layers.png
     :align: center
 
-In the above example, ``pets.cats.purring`` could import ``pets.rabbits`` but not ``pets.dogs.walkies``.
-``pets.dogs.walkies`` could import any other module, as it is in the highest layer.
+The above example shows a single group consisting of three layers. Their container is the top level package, ``pets``.
+According to the constraints imposed by layers, ``pets.cats.purring`` may import ``pets.rabbits`` but not
+``pets.dogs.walkies``. ``pets.dogs.walkies`` may import any other module, as it is in the highest layer.
 
 (For further reading on Layers, see
 `the Wikipedia page on Multitier Architecture`_).
@@ -61,21 +68,21 @@ Contracts
 ---------
 
 *Contracts* are how you describe your architecture to Layer Linter. You write them in a ``layers.yml`` file. Each
-Contract contains two lists, ``layers`` and ``packages``.
+Contract contains two lists, ``layers`` and ``containers``.
 
 - ``layers`` takes the form of an ordered list with the name of each layer module, *relative to its parent package*.
   The order is from high level layer to low level layer.
-- ``packages`` lists the parent modules of the layers.  If you have only one set of layers,
-  there will be only one package: the top level package. However, you could choose to have a repeating
-  pattern of layers across multiple subpackages; in which case, you would list each of those containing
-  packages.
+- ``containers`` lists the parent modules of the layers, as *absolute names* that you could import, such as
+  ``mypackage.foo``. If you have only one set of layers, there will be only one container: the top level package.
+  However, you could choose to have a repeating pattern of layers across multiple subpackages; in which case,
+  you would include each of those subpackages in the containers list.
 
 You can have as many of these contracts as you like, and you give each one a name.
 
-**Example: single package contract**
+**Example: single container contract**
 
-The three-layered structure described earlier can be described by the following contract. Note that the layers have names
-relative to the single, containing package.
+The three-layered structure described earlier can be described by the following contract. Note that the layers have
+names relative to the single, containing package.
 
 .. code-block:: none
 
@@ -89,13 +96,13 @@ relative to the single, containing package.
 
 **Example: multiple package contract**
 
-A more complex architecture might involve the same layers repeated across multiple packages, like this:
+A more complex architecture might involve the same layers repeated across multiple containers, like this:
 
 .. image:: img/modular-layers.png
     :align: center
 
-In this case, rather than have three contracts, one for each package, you may list all the packages in a single contract.
-The order of the packages is not important.
+In this case, rather than have three contracts, one for each container, you may list all the containers in a single
+contract. The order of the containers is not important.
 
 .. code-block:: none
 

@@ -157,10 +157,18 @@ class Contract:
 
 def contract_from_yaml(key: str, data: Dict) -> Contract:
     layers: List[Layer] = []
+    if 'layers' not in data:
+        raise ContractParseError(f"'{key}' is missing a list of layers.")
     for layer_name in data['layers']:
         layers.append(Layer(layer_name))
 
     containers: List[Module] = []
+    if 'containers' not in data:
+        error_message = f"'{key}' is missing a list of containers."
+        # Help users who are using the older format.
+        if 'packages' in data:
+            error_message += " (Tip: try renaming 'packages' to 'containers'.)"
+        raise ContractParseError(error_message)
     for package_name in data['containers']:
         containers.append(Module(package_name))
 

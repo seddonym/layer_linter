@@ -91,3 +91,8 @@ History
 * Moved to beta version.
 * Improved documentation.
 * Better handling of invalid package names passed to command line.
+
+latest
+------
+
+* Renamed packages to containers.
