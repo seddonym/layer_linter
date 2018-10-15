@@ -15,7 +15,7 @@ History
 0.3.0 (2018-06-24)
 ------------------
 
-* Rename command to ``layer-lint``.
+* Renamed command to ``layer-lint``.
 * Changed order of layers in ``layers.yml`` to be listed high level to low level.
 
 0.4.0 (2018-07-22)
@@ -42,7 +42,7 @@ History
 0.6.1 (2018-08-07)
 ------------------
 
-* Add current working directory to path.
+* Added current working directory to path.
 
 0.6.2 (2018-08-17)
 ------------------
@@ -53,32 +53,32 @@ History
 0.7.0 (2018-09-04)
 ------------------
 
-* Complete rewrite of static analysis used to build dependency graph.
+* Completed rewrite of static analysis used to build dependency graph.
 * Added quiet and verbose reporting.
 * Added type annotation and mypy.
-* Build earlier versions of Python using pybackwards.
+* Built earlier versions of Python using pybackwards.
 * Corrected docs to refer to ``layers.yml`` instead of ``layers.yaml``.
 
 0.7.1 (2018-09-04)
 ------------------
 
-* Fix packaging bug with 0.7.0.
+* Fixed packaging bug with 0.7.0.
 
 0.7.2 (2018-09-05)
 ------------------
 
-* Fix bug with not checking all submodules of layer.
+* Fixed bug with not checking all submodules of layer.
 
 0.7.3 (2018-09-07)
 ------------------
 
-* Drop support for Python 3.4 and 3.5 and adjust packaging.
+* Dropped support for Python 3.4 and 3.5 and adjust packaging.
 
 0.7.4 (2018-09-20)
 ------------------
 
-* Tweak command line error handling.
-* Improve README and `Core Concepts` documentation.
+* Tweaked command line error handling.
+* Improved README and `Core Concepts` documentation.
 
 0.8.0 (2018-09-29)
 ------------------
@@ -92,7 +92,7 @@ History
 * Improved documentation.
 * Better handling of invalid package names passed to command line.
 
-latest
-------
+0.10.0 (2018-10-14)
+-------------------
 
-* Renamed packages to containers.
+* Renamed 'packages' to 'containers' in contracts.
