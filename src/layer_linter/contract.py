@@ -1,6 +1,6 @@
 from typing import List, Dict, Iterable, Optional
 import yaml
-import os
+import importlib
 import logging
 from copy import copy
 
@@ -217,4 +217,10 @@ def _validate_container_name(container_name, package_name):
         raise ValueError(
             f"Invalid container '{container_name}': containers must be either a "
             f"subpackage of '{package_name}', or '{package_name}' itself."
+        )
+
+    # Check that the container actually exists.
+    if importlib.util.find_spec(container_name) is None:
+        raise ValueError(
+            f"Invalid container '{container_name}': no such package."
         )

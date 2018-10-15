@@ -1,4 +1,5 @@
 from unittest import mock
+import importlib
 import pytest
 from layer_linter import contract
 from layer_linter.module import Module
@@ -286,8 +287,10 @@ class TestContractCheck:
             ]
 
 
+@mock.patch.object(importlib.util, 'find_spec')
 class TestContractFromYAML:
-    def test_incorrect_whitelisted_path_format(self):
+
+    def test_incorrect_whitelisted_path_format(self, mock_find_spec):
         data = {
             'containers': ['mypackage.foo', 'mypackage.bar'],
             'layers': ['one', 'two'],
@@ -303,7 +306,7 @@ class TestContractFromYAML:
             '"importer.module <- imported.module".'
         )
 
-    def test_container_not_in_package(self):
+    def test_container_not_in_package(self, mock_find_spec):
         data = {
             'containers': ['mypackage.foo', 'anotherpackage.foo'],
             'layers': ['one', 'two'],

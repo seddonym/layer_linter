@@ -52,6 +52,16 @@ class TestMain:
         else:
             assert result == EXIT_STATUS_SUCCESS
 
+    def test_missing_container(self, verbosity_count, is_quiet, should_always_fail):
+        package_name = 'successpackage'
+        self._chdir_and_add_to_system_path(package_name)
+
+        result = _main(package_name,
+                       config_filename='layers_with_missing_container.yml',
+                       verbosity_count=verbosity_count, is_quiet=is_quiet)
+
+        assert result == EXIT_STATUS_ERROR
+
     def _chdir_and_add_to_system_path(self, package_name):
         path = os.path.join(assets_path, package_name)
         sys.path.append(path)
