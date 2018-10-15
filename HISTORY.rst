@@ -96,3 +96,9 @@ History
 -------------------
 
 * Renamed 'packages' to 'containers' in contracts.
+
+0.10.1 (2018-10-14)
+-------------------
+
+* Improved handling of invalid containers.
+
