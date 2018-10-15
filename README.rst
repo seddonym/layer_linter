@@ -59,14 +59,14 @@ Install Layer Linter::
 Decide on the dependency flows you wish to check. In this example, we have
 organised our project into three subpackages, ``myproject.high``, ``myproject.medium``
 and ``myproject.low``. These subpackages are known as *layers*. Note: layers must
-have the same parent package (i.e. all be in the same directory).
+have the same parent package (i.e. all be in the same directory). This parent is known as a *container*.
 
 Create a ``layers.yml`` in the root of your project. For example:
 
 .. code-block:: none
 
     My Layers Contract:
-      packages:
+      containers:
         - myproject
       layers:
         - high
@@ -76,7 +76,7 @@ Create a ``layers.yml`` in the root of your project. For example:
 (This contract tells Layer Linter that the order of the layers runs from ``low`` at the bottom
 to ``high`` at the top. Layers higher up can import ones lower down, but not the other way around.)
 
-Note that the package is an absolute name, while the layers are relative to the package.
+Note that the container is an absolute name of a Python package, while the layers are relative to the container.
 
 Now, from your project root, run::
 

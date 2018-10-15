@@ -72,7 +72,7 @@ class TestContractCheck:
     def test_kept_contract(self):
         contract = Contract(
             name='Foo contract',
-            packages=(
+            containers=(
                 Module('foo.blue'),
                 Module('foo.green'),
             ),
@@ -105,7 +105,7 @@ class TestContractCheck:
                     Module('foo.blue.three'): [Module('foo.blue.three'), Module('foo.blue.one')],
                 },
                 Module('foo.green.three'): {
-                    # Layer importing higher up layer, but from another package.
+                    # Layer importing higher up layer, but from another container.
                     Module('foo.blue.one'): [Module('foo.blue.one'), Module('foo.green.three')],
                 },
                 Module('foo.green.three.beta'): {
@@ -128,7 +128,7 @@ class TestContractCheck:
     def test_broken_contract(self):
         contract = Contract(
             name='Foo contract',
-            packages=(
+            containers=(
                 Module('foo.blue'),
                 Module('foo.green'),
             ),
@@ -175,7 +175,7 @@ class TestContractCheck:
     def test_unchecked_contract_raises_exception(self):
         contract = Contract(
             name='Foo contract',
-            packages=(
+            containers=(
                 'foo',
             ),
             layers=(
@@ -196,7 +196,7 @@ class TestContractCheck:
 
         contract = Contract(
             name='Foo contract',
-            packages=(
+            containers=(
                 'foo',
             ),
             layers=(
@@ -229,7 +229,7 @@ class TestContractCheck:
     def test_only_shortest_violation_is_reported(self, longer_first):
         contract = Contract(
             name='Foo contract',
-            packages=(
+            containers=(
                 'foo',
             ),
             layers=(
@@ -289,7 +289,7 @@ class TestContractCheck:
 class TestContractFromYAML:
     def test_incorrect_whitelisted_path_format(self):
         data = {
-            'packages': ['foo', 'bar'],
+            'containers': ['foo', 'bar'],
             'layers': ['one', 'two'],
             'whitelisted_paths': [
                 'not the right format',

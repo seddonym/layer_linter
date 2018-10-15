@@ -33,7 +33,7 @@ def test_get_contracts():
         expected_data = expected_contracts[contract_index]
         assert contract.name == expected_data['name']
 
-        for package_index, package in enumerate(contract.packages):
+        for package_index, package in enumerate(contract.containers):
             expected_package_name = expected_data['packages'][package_index]
             assert package == Module(expected_package_name)
 

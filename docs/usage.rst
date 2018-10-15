@@ -7,7 +7,7 @@ Before use, you will probably want to read :doc:`concepts`.
 Defining your contracts
 -----------------------
 
-Your layers contracts are defined in a yaml file named ``layers.yml``. This
+Your layers contracts are defined in a YAML file named ``layers.yml``. This
 may exist anywhere, but a good place is in your project root.
 
 The file contains one or more contracts, in the following format:
@@ -15,8 +15,8 @@ The file contains one or more contracts, in the following format:
 .. code-block:: none
 
     [Contract name]:
-        packages:
-            - [package]
+        containers:
+            - [container]
             [...]
         layers:
             - [layer]
@@ -28,14 +28,15 @@ The file contains one or more contracts, in the following format:
             [...]
 
 1. **Contract name**: A string to describe your contract.
-2. **Package**: Absolute name of any Python package that contains the layers as
-   immediate children. One or more packages are allowed in this list.
-3. **Layer**: Name of the Python module relative to the each package listed in
-   ``packages``. Modules lower down the list must not import modules higher up.
+2. **Container**: Absolute name of any Python package that contains the layers as
+   immediate children. One or more containers are allowed in this list.
+3. **Layer**: Name of the Python module *relative* to each container listed in
+   ``containers``. Modules lower down the list must not import modules higher up.
    (Remember, a Python module can either be a ``.py`` file or a directory with
    an ``__init__.py`` file inside.)
-4. **Whitelisted paths** (optional): If you wish certain import paths not to
-   break in the contract, you can optionally whitelist them.
+4. **Whitelisted path** (optional): If you wish certain import paths not to
+   break in the contract, you can optionally whitelist them. The modules should be listed as
+   absolute names.
 
 For some examples, see :doc:`concepts`.
 
@@ -48,7 +49,7 @@ Running this will check that your project adheres to the contracts in your ``lay
 
 - Positional arguments:
 
-    - ``package_name``: The name of the Python package to validate (required).
+    - ``package_name``: The name of the top-level Python package to validate (required).
 
 - Optional arguments:
 

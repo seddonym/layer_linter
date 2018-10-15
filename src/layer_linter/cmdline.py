@@ -180,7 +180,7 @@ def _get_contracts(config_filename: str) -> List[Contract]:
     except FileNotFoundError as e:
         raise RuntimeError("{}: {}".format(e.strerror, e.filename))
     except ContractParseError as e:
-        raise RuntimeError('Error: {}'.format(e))
+        raise RuntimeError('Error parsing contract: {}'.format(e))
 
 
 def _print_package_name_error_and_help(error_text):
