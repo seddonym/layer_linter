@@ -9,18 +9,18 @@ def test_get_contracts():
     dirname = os.path.dirname(__file__)
     filename = os.path.join(dirname, '..', 'assets', 'singlecontractfile', 'layers.yml')
 
-    contracts = get_contracts(filename)
+    contracts = get_contracts(filename, package_name='singlecontractfile')
 
     assert len(contracts) == 2
     expected_contracts = [
         {
             'name': 'Contract A',
-            'packages': ['foo', 'bar'],
+            'packages': ['singlecontractfile.foo', 'singlecontractfile.bar'],
             'layers': ['one', 'two'],
         },
         {
             'name': 'Contract B',
-            'packages': ['baz/*'],
+            'packages': ['singlecontractfile'],
             'layers': ['one', 'two', 'three'],
             'whitelisted_paths': [
                 ('baz.utils', 'baz.three.green'),

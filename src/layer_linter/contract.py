@@ -155,7 +155,7 @@ class Contract:
         return '<{}: {}>'.format(self.__class__.__name__, self)
 
 
-def contract_from_yaml(key: str, data: Dict) -> Contract:
+def contract_from_yaml(key: str, data: Dict, package_name: str) -> Contract:
     layers: List[Layer] = []
     if 'layers' not in data:
         raise ContractParseError(f"'{key}' is missing a list of layers.")
@@ -169,8 +169,10 @@ def contract_from_yaml(key: str, data: Dict) -> Contract:
         if 'packages' in data:
             error_message += " (Tip: try renaming 'packages' to 'containers'.)"
         raise ContractParseError(error_message)
-    for package_name in data['containers']:
-        containers.append(Module(package_name))
+
+    for container_name in data['containers']:
+        _validate_container_name(container_name, package_name)
+        containers.append(Module(container_name))
 
     whitelisted_paths: List[ImportPath] = []
     for whitelist_data in data.get('whitelisted_paths', []):
@@ -190,7 +192,7 @@ def contract_from_yaml(key: str, data: Dict) -> Contract:
     )
 
 
-def get_contracts(filename: str) -> List[Contract]:
+def get_contracts(filename: str, package_name: str) -> List[Contract]:
     """Read in any contracts from the given filename.
     """
     contracts = []
@@ -202,6 +204,17 @@ def get_contracts(filename: str) -> List[Contract]:
             logger.debug(e)
             raise ContractParseError('Could not parse {}.'.format(filename))
         for key, data in data_from_yaml.items():
-            contracts.append(contract_from_yaml(key, data))
+            contracts.append(contract_from_yaml(key, data, package_name))
 
     return contracts
+
+
+def _validate_container_name(container_name, package_name):
+    """Raise a ValueError if the suppled container name is not a valid container for the supplied
+    package name.
+    """
+    if not container_name.startswith(package_name):
+        raise ValueError(
+            f"Invalid container '{container_name}': containers must be either a "
+            f"subpackage of '{package_name}', or '{package_name}' itself."
+        )

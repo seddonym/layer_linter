@@ -84,15 +84,15 @@ def _main(package_name, config_filename=None, is_debug=False,
         logging.basicConfig(level=logging.DEBUG)
 
     try:
-        contracts = _get_contracts(config_filename)
-    except Exception as e:
-        ConsolePrinter.print_error(str(e))
-        return EXIT_STATUS_ERROR
-
-    try:
         package = _get_package(package_name)
     except ValueError as e:
         _print_package_name_error_and_help(str(e))
+        return EXIT_STATUS_ERROR
+
+    try:
+        contracts = _get_contracts(config_filename, package_name)
+    except Exception as e:
+        ConsolePrinter.print_error(str(e))
         return EXIT_STATUS_ERROR
 
     graph = DependencyGraph(package=package)
@@ -171,12 +171,12 @@ def _get_package(package_name: str) -> SafeFilenameModule:
     return SafeFilenameModule(name=package_name, filename=package_filename.origin)
 
 
-def _get_contracts(config_filename: str) -> List[Contract]:
+def _get_contracts(config_filename: str, package_name: str) -> List[Contract]:
     # Parse contracts file.
     if config_filename is None:
         config_filename = os.path.join(os.getcwd(), 'layers.yml')
     try:
-        return get_contracts(filename=config_filename)
+        return get_contracts(filename=config_filename, package_name=package_name)
     except FileNotFoundError as e:
         raise RuntimeError("{}: {}".format(e.strerror, e.filename))
     except ContractParseError as e:

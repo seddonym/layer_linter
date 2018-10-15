@@ -38,12 +38,12 @@ class TestMain:
         assert result == EXIT_STATUS_ERROR
 
     def test_specify_config_file(self, verbosity_count, is_quiet, should_always_fail):
-        package_name = 'successpackage'
+        package_name = 'dependenciespackage'
         self._chdir_and_add_to_system_path(package_name)
 
         result = _main(
             package_name,
-            config_filename='layers_alternative.yml',
+            config_filename='../successpackage/layers_alternative.yml',
             verbosity_count=verbosity_count,
             is_quiet=is_quiet)
 

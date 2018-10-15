@@ -289,7 +289,7 @@ class TestContractCheck:
 class TestContractFromYAML:
     def test_incorrect_whitelisted_path_format(self):
         data = {
-            'containers': ['foo', 'bar'],
+            'containers': ['mypackage.foo', 'mypackage.bar'],
             'layers': ['one', 'two'],
             'whitelisted_paths': [
                 'not the right format',
@@ -297,8 +297,21 @@ class TestContractFromYAML:
         }
 
         with pytest.raises(ValueError) as exception:
-            contract.contract_from_yaml('Contract Foo', data)
+            contract.contract_from_yaml('Contract Foo', data, 'mypackage')
         assert str(exception.value) == (
             'Whitelisted paths must be in the format '
             '"importer.module <- imported.module".'
+        )
+
+    def test_container_not_in_package(self):
+        data = {
+            'containers': ['mypackage.foo', 'anotherpackage.foo'],
+            'layers': ['one', 'two'],
+        }
+
+        with pytest.raises(ValueError) as exception:
+            contract.contract_from_yaml('Contract Foo', data, 'mypackage')
+        assert str(exception.value) == (
+            "Invalid container 'anotherpackage.foo': containers must be either a subpackage of "
+            "'mypackage', or 'mypackage' itself."
         )
