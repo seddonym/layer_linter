@@ -1,0 +1,8 @@
+Contract A:
+  containers:
+    - singlecontractfile.foo
+    - singlecontractfile.missing
+    - singlecontractfile.bar
+  layers:
+    - one
+    - two

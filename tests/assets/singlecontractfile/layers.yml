@@ -1,14 +1,14 @@
 Contract A:
   containers:
-    - foo
-    - bar
+    - singlecontractfile.foo
+    - singlecontractfile.bar
   layers:
     - one
     - two
 
 Contract B:
   containers:
-    - baz/*
+    - singlecontractfile
   layers:
     - one
     - two
