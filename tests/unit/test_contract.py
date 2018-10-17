@@ -30,15 +30,13 @@ class StubDependencyGraph:
                     A call to .find_path(downstream=downstream_module, upstream=upstream_module)
                     will return the supplied path, if it is present in the dictionary. Otherwise,
                     the stub will return None.
+        modules:    List of all modules in the graph.
     Usage:
 
         graph = StubDependencyGraph(
             descendants={
                 Module('foo.one'): [
-                    Module('foo.one'), Module('foo.one.red'), Module('foo.one.green')
-                ],
-                Module('foo.two'): [
-                    Module('foo.two'),
+                    Module('foo.one.red'), Module('foo.one.green')
                 ],
             },
             paths = {
@@ -48,13 +46,15 @@ class StubDependencyGraph:
                     ],
                 },
                 ...
-            }
+            },
+            modules [Module('foo.one'), Module('foo.one.red'), Module('foo.one.green')],
         )
 
     """
-    def __init__(self, descendants, paths):
-        self.descendants = descendants
-        self.paths = paths
+    def __init__(self, descendants=None, paths=None, modules=None):
+        self.descendants = descendants if descendants else {}
+        self.paths = paths if paths else {}
+        self.modules = modules if modules else []
 
     def get_descendants(self, module):
         try:
@@ -67,6 +67,9 @@ class StubDependencyGraph:
             return self.paths[upstream][downstream]
         except KeyError:
             return None
+
+    def __contains__(self, item):
+        return item in self.modules
 
 
 class TestContractCheck:
@@ -120,6 +123,18 @@ class TestContractCheck:
                                                       Module('foo.green.one.alpha')]
                 },
             },
+            modules=[
+                Module('foo.green'),
+                Module('foo.green.one'),
+                Module('foo.green.one.alpha'),
+                Module('foo.green.one.beta'),
+                Module('foo.green.two'),
+                Module('foo.green.three'),
+                Module('foo.blue'),
+                Module('foo.blue.one'),
+                Module('foo.blue.two'),
+                Module('foo.blue.three'),
+            ]
         )
 
         contract.check_dependencies(graph)
@@ -163,6 +178,18 @@ class TestContractCheck:
                                                     Module('foo.green.three.alpha')],
                 },
             },
+            modules=[
+                Module('foo.green'),
+                Module('foo.green.one'),
+                Module('foo.green.one.alpha'),
+                Module('foo.green.one.beta'),
+                Module('foo.green.two'),
+                Module('foo.green.three'),
+                Module('foo.blue'),
+                Module('foo.blue.one'),
+                Module('foo.blue.two'),
+                Module('foo.blue.three'),
+            ]
         )
 
         contract.check_dependencies(graph)
@@ -217,6 +244,11 @@ class TestContractCheck:
                     Module('foo.one'): [Module('foo.one'), Module('foo.two')],
                 },
             },
+            modules=[
+                Module('foo.one'),
+                Module('foo.two'),
+                Module('foo.three'),
+            ]
         )
 
         contract.check_dependencies(graph)
@@ -225,6 +257,8 @@ class TestContractCheck:
             [Module('foo.one'), Module('foo.two')],
             [Module('foo.two'), Module('foo.three')],
         ]
+
+    
 
     @pytest.mark.parametrize('longer_first', (True, False))
     def test_only_shortest_violation_is_reported(self, longer_first):
@@ -273,6 +307,7 @@ class TestContractCheck:
                                     Module('foo.one.alpha.blue'), Module('foo.one.alpha.green')],
             },
             paths=paths,
+            modules=[Module('foo.one'), Module('foo.two')]
         )
 
         contract.check_dependencies(graph)
@@ -285,6 +320,40 @@ class TestContractCheck:
             assert contract.illegal_dependencies == [
                 [Module('foo.one.alpha'), Module('foo.another'), Module('foo.two')],
             ]
+
+    def test_missing_contract_raises_exception(self):
+        contract = Contract(
+            name='Foo contract',
+            containers=(
+                'foo.one',
+                'foo.two',
+            ),
+            layers=(
+                Layer('blue'),
+                Layer('yellow'),  # Missing from foo.two.
+                Layer('green'),
+            ),
+        )
+        graph = StubDependencyGraph(
+            modules=[
+                Module('foo.one'),
+                Module('foo.one.blue'),
+                Module('foo.one.blue.alpha'),
+                Module('foo.one.yellow'),
+                Module('foo.one.green'),
+                Module('foo.two'),
+                Module('foo.two.blue'),
+                Module('foo.two.blue.alpha'),
+                Module('foo.two.green'),
+            ]
+        )
+
+        with pytest.raises(ValueError) as e:
+            contract.check_dependencies(graph)
+
+        assert str(e.value) == (
+            "Missing layer in container 'foo.two': module foo.two.yellow does not exist."
+        )
 
 
 @mock.patch.object(importlib.util, 'find_spec')

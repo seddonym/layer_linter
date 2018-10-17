@@ -35,6 +35,8 @@ class Contract:
         self.whitelisted_paths = whitelisted_paths if whitelisted_paths else []
 
     def check_dependencies(self, dependencies: DependencyGraph) -> None:
+        self._check_all_layers_exist_for_all_containers(dependencies)
+
         self.illegal_dependencies: List[List[str]] = []
 
         logger.debug('Checking dependencies for contract {}...'.format(self))
@@ -42,6 +44,25 @@ class Contract:
         for container in self.containers:
             for layer in reversed(self.layers):
                 self._check_layer_does_not_import_downstream(layer, container, dependencies)
+
+    def _check_all_layers_exist_for_all_containers(self, dependencies: DependencyGraph) -> None:
+        """
+        Raise a ValueError if we couldn't find any Python files for each layer in all containers.
+        """
+        for container in self.containers:
+            self._check_all_layers_exist_for_container(container, dependencies)
+
+    def _check_all_layers_exist_for_container(self,
+                                              container: Module,
+                                              dependencies: DependencyGraph) -> None:
+        """
+        Raise a ValueError if we couldn't find any Python files for each layer.
+        """
+        for layer in self.layers:
+            layer_module = self._get_layer_module(layer, container)
+            if layer_module not in dependencies:
+                raise ValueError(f"Missing layer in container '{container}': "
+                                 f"module {layer_module} does not exist.")
 
     def _check_layer_does_not_import_downstream(self, layer: Layer, container: Module,
                                                 dependencies: DependencyGraph) -> None:
@@ -80,12 +101,15 @@ class Contract:
             List of modules names within that layer, including the layer module itself.
             Includes grandchildren and deeper.
         """
-        layer_module = Module("{}.{}".format(container, layer.name))
+        layer_module = self._get_layer_module(layer, container)
         modules = [layer_module]
         modules.extend(
             dependencies.get_descendants(layer_module)
         )
         return modules
+
+    def _get_layer_module(self, layer: Layer, container: Module) -> Module:
+        return Module("{}.{}".format(container, layer.name))
 
     def _get_modules_in_downstream_layers(
         self, layer: Layer, container: Module, dependencies: DependencyGraph

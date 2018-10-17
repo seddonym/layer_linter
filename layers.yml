@@ -3,7 +3,7 @@ Layer Linter architecture:
     - layer_linter
   layers:
     - cmdline
-    - reports
+    - report
     - contract
     - dependencies
     - module

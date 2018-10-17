@@ -114,3 +114,9 @@ class TestDependencyGraph:
 
         # Should be number of ImportPaths returned by DependencyAnalyzer.determine_import_paths.
         assert graph.dependency_count == 3
+
+    def test_contains(self):
+        graph = graph_module.DependencyGraph(self.PACKAGE)
+
+        assert Module('foo.one.alpha') in graph
+        assert Module('foo.one.omega') not in graph

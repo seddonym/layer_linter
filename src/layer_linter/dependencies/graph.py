@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional
+from typing import List, Optional, Any
 import networkx  # type: ignore
 from networkx.algorithms import shortest_path  # type: ignore
 
@@ -129,3 +129,13 @@ class DependencyGraph:
     def _restore_paths_to_networkx_graph(self, import_paths: List[ImportPath]) -> None:
         for import_path in import_paths:
             self._add_path_to_networkx_graph(import_path)
+
+    def __contains__(self, item: Any) -> bool:
+        """
+        Returns whether or not the given item is a Module in the dependency graph.
+
+        Usage:
+            if module in graph:
+                ...
+        """
+        return item in self.modules

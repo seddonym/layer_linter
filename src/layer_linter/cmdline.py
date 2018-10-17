@@ -107,7 +107,11 @@ def _main(package_name, config_filename=None, is_debug=False,
     report = report_class(graph)
 
     for contract in contracts:
-        contract.check_dependencies(graph)
+        try:
+            contract.check_dependencies(graph)
+        except Exception as e:
+            ConsolePrinter.print_error(str(e))
+            return EXIT_STATUS_ERROR
         report.add_contract(contract)
 
     report.output()
