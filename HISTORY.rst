@@ -102,3 +102,8 @@ History
 
 * Improved handling of invalid containers.
 
+latest
+------
+
+* Error if a layer is missing.
+
