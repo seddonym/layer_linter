@@ -102,8 +102,8 @@ History
 
 * Improved handling of invalid containers.
 
-latest
-------
+0.10.2 (2018-10-17)
+-------------------
 
 * Error if a layer is missing.
 
