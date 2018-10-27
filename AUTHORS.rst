@@ -11,7 +11,7 @@ Development Lead
 Contributors
 ------------
 
-None yet. Why not be the first?
+- Thiago Colares https://github.com/colares
 
 Other credits
 -------------
