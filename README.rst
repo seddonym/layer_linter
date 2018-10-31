@@ -61,9 +61,7 @@ organised our project into three subpackages, ``myproject.high``, ``myproject.me
 and ``myproject.low``. These subpackages are known as *layers*. Note: layers must
 have the same parent package (i.e. all be in the same directory). This parent is known as a *container*.
 
-Create a ``layers.yml`` in the root of your project. For example:
-
-.. code-block:: none
+Create a ``layers.yml`` in the root of your project. For example::
 
     My Layers Contract:
       containers:
@@ -82,9 +80,7 @@ Now, from your project root, run::
 
     layer-lint myproject
 
-If your code violates the contract, you will see an error message something like this:
-
-.. code-block:: none
+If your code violates the contract, you will see an error message something like this::
 
     ============
     Layer Linter
