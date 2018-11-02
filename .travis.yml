@@ -18,6 +18,9 @@ matrix:
     - name: "Mypy"
       python: "3.6"
       env: TOXENV=mypy
+    - name: "RST linting"
+      python: "3.6"
+      env: TOXENV=rst
 install: pip install -U tox-travis tox-py-backwards
 script: tox
 deploy:
