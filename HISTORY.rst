@@ -107,7 +107,7 @@ History
 
 * Error if a layer is missing.
 
-latest
-------
+0.10.3 (2018-11-2)
+------------------
 
 * Fixed RST rendering on PyPI.
