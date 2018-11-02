@@ -12,6 +12,7 @@ Contributors
 ------------
 
 - Thiago Colares https://github.com/colares
+- James Cooke https://github.com/jamescooke
 
 Other credits
 -------------
