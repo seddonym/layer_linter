@@ -1,4 +1,5 @@
 from typing import List, Dict, Iterable, Optional
+import re
 import yaml
 import importlib
 import logging
@@ -16,8 +17,17 @@ class ContractParseError(IOError):
 
 
 class Layer:
-    def __init__(self, name: str) -> None:
+    """
+    A relatively named module or subpackage. When combined with a container,
+    it refers to a specific module. For example, Layer('one') would refer
+    to Module('foo.one') when combined with the containing Module('foo').
+
+    If a Layer is marked as optional, then a Contract won't complain if
+    it can't find it within a particular container.
+    """
+    def __init__(self, name: str, is_optional=False) -> None:
         self.name = name
+        self.is_optional = is_optional
 
     def __str__(self) -> str:
         return self.name
@@ -56,9 +66,11 @@ class Contract:
                                               container: Module,
                                               dependencies: DependencyGraph) -> None:
         """
-        Raise a ValueError if we couldn't find any Python files for each layer.
+        Raise a ValueError if we couldn't find any Python files for each non-optional layer.
         """
         for layer in self.layers:
+            if layer.is_optional:
+                continue
             layer_module = self._get_layer_module(layer, container)
             if layer_module not in dependencies:
                 raise ValueError(f"Missing layer in container '{container}': "
@@ -179,12 +191,19 @@ class Contract:
         return '<{}: {}>'.format(self.__class__.__name__, self)
 
 
+PARENTHESES_REGEX = re.compile(r'^\(.*\)$')
+
+
 def contract_from_yaml(key: str, data: Dict, package_name: str) -> Contract:
     layers: List[Layer] = []
     if 'layers' not in data:
         raise ContractParseError(f"'{key}' is missing a list of layers.")
     for layer_name in data['layers']:
-        layers.append(Layer(layer_name))
+        if PARENTHESES_REGEX.match(layer_name):
+            layer = Layer(layer_name[1:-1], is_optional=True)
+        else:
+            layer = Layer(layer_name)
+        layers.append(layer)
 
     containers: List[Module] = []
     if 'containers' not in data:

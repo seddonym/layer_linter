@@ -111,3 +111,8 @@ History
 ------------------
 
 * Fixed RST rendering on PyPI.
+
+latest
+------
+
+* Support defining optional layers.

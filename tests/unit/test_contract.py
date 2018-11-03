@@ -321,7 +321,10 @@ class TestContractCheck:
                 [Module('foo.one.alpha'), Module('foo.another'), Module('foo.two')],
             ]
 
-    def test_missing_contract_raises_exception(self):
+    @pytest.mark.parametrize(
+        'is_optional', (True, False),
+    )
+    def test_missing_contract(self, is_optional):
         contract = Contract(
             name='Foo contract',
             containers=(
@@ -330,7 +333,7 @@ class TestContractCheck:
             ),
             layers=(
                 Layer('blue'),
-                Layer('yellow'),  # Missing from foo.two.
+                Layer('yellow', is_optional=is_optional),  # Missing from foo.two.
                 Layer('green'),
             ),
         )
@@ -348,16 +351,31 @@ class TestContractCheck:
             ]
         )
 
-        with pytest.raises(ValueError) as e:
+        if is_optional:
+            # Should pass.
             contract.check_dependencies(graph)
+        else:
+            with pytest.raises(ValueError) as e:
+                contract.check_dependencies(graph)
 
-        assert str(e.value) == (
-            "Missing layer in container 'foo.two': module foo.two.yellow does not exist."
-        )
+            assert str(e.value) == (
+                "Missing layer in container 'foo.two': module foo.two.yellow does not exist."
+            )
 
 
 @mock.patch.object(importlib.util, 'find_spec')
 class TestContractFromYAML:
+
+    def test_parentheses_indicate_optional_layer(self, mock_find_spec):
+        data = {
+            'containers': ['mypackage.foo'],
+            'layers': ['one', '(two)'],
+        }
+
+        parsed_contract = contract.contract_from_yaml('Contract Foo', data, 'mypackage')
+
+        assert not parsed_contract.layers[0].is_optional
+        assert parsed_contract.layers[1].is_optional
 
     def test_incorrect_whitelisted_path_format(self, mock_find_spec):
         data = {

@@ -14,31 +14,66 @@ The file contains one or more contracts, in the following format:
 
 .. code-block:: none
 
-    [Contract name]:
+    Contract name:
         containers:
-            - [container]
-            [...]
+            - mypackage.container
+            ...
         layers:
-            - [layer]
-            - [layer]
-            [...]
+            - layerone
+            - layertwo
+            ...
         whitelisted_paths:
-            - [importing.module] <- [imported.module]
-            - [importing.module] <- [imported.module]
-            [...]
+            - mypackage.container.layertwo.module <- mypackage.container.layerone.module
+            ...
 
 1. **Contract name**: A string to describe your contract.
-2. **Container**: Absolute name of any Python package that contains the layers as
+2. **Containers**: Absolute names of any Python package that contains the layers as
    immediate children. One or more containers are allowed in this list.
-3. **Layer**: Name of the Python module *relative* to each container listed in
+3. **Layers**: Names of the Python module *relative* to each container listed in
    ``containers``. Modules lower down the list must not import modules higher up.
    (Remember, a Python module can either be a ``.py`` file or a directory with
    an ``__init__.py`` file inside.)
-4. **Whitelisted path** (optional): If you wish certain import paths not to
+4. **Whitelisted paths** (optional): If you wish certain import paths not to
    break in the contract, you can optionally whitelist them. The modules should be listed as
-   absolute names.
+   absolute names, with the importing module first, and the imported module second.
 
 For some examples, see :doc:`concepts`.
+
+Additional syntax
+-----------------
+
+**Optional layers**
+
+You may specify certain layers as optional, by enclosing the name in parentheses.
+
+By default, Layer Linter will error if it cannot find the module for a particular layer.
+Take the following contract:
+
+.. code-block:: none
+
+    My contract:
+        containers:
+            - mypackage.foo
+            - mypackage.bar
+        layers:
+            - one
+            - two
+
+If the module ``mypackage.foo.two`` is missing, the contract will be broken. If you want
+the contract to pass despite this, you can enclose the layer name in parentheses:
+
+.. code-block:: none
+
+    My contract:
+        containers:
+            - mypackage.foo
+            - mypackage.bar
+        layers:
+            - one
+            - (two)
+
+Layer ``two`` is now optional, which means the contract will pass even though ``mypackage.bar.two``
+is missing.
 
 Running the linter
 ------------------
