@@ -39,7 +39,7 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     url='https://github.com/seddonym/layer_linter',
-    version='0.10.3',
+    version='0.11.0',
     zip_safe=False,
     entry_points={
         'console_scripts': [

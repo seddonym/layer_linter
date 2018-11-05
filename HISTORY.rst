@@ -112,7 +112,8 @@ History
 
 * Fixed RST rendering on PyPI.
 
-latest
-------
+0.11.0 (2018-11-5)
+------------------
 
 * Support defining optional layers.
+
