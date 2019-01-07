@@ -33,7 +33,7 @@ def test_dependency_graph():
 
     assert graph.find_path(
         upstream=MODULE_ONE,
-        downstream=MODULE_TWO) == (MODULE_TWO, MODULE_ONE)
+        downstream=MODULE_TWO) == [MODULE_TWO, MODULE_ONE]
 
     assert graph.find_path(
         upstream=MODULE_TWO,
@@ -41,16 +41,16 @@ def test_dependency_graph():
 
     assert graph.find_path(
         upstream=MODULE_ONE,
-        downstream=MODULE_FOUR) == (MODULE_FOUR, MODULE_THREE,
-                                    MODULE_TWO, MODULE_ONE)
+        downstream=MODULE_FOUR) == [MODULE_FOUR, MODULE_THREE,
+                                    MODULE_TWO, MODULE_ONE]
 
     assert graph.find_path(
         upstream=SUBMODULE_ONE,
-        downstream=SUBMODULE_THREE) == (SUBMODULE_THREE, SUBMODULE_TWO, SUBMODULE_ONE)
+        downstream=SUBMODULE_THREE) == [SUBMODULE_THREE, SUBMODULE_TWO, SUBMODULE_ONE]
 
     assert graph.find_path(
         upstream=SUBSUBMODULE_ONE,
-        downstream=SUBSUBMODULE_THREE) == (SUBSUBMODULE_THREE, SUBSUBMODULE_TWO, SUBSUBMODULE_ONE)
+        downstream=SUBSUBMODULE_THREE) == [SUBSUBMODULE_THREE, SUBSUBMODULE_TWO, SUBSUBMODULE_ONE]
 
     # Module count should be 13 (running total in square brackets):
     # - dependenciespackage [1]

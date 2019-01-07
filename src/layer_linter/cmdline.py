@@ -110,6 +110,7 @@ def _main(package_name, config_filename=None, is_debug=False,
         try:
             contract.check_dependencies(graph)
         except Exception as e:
+            raise e
             ConsolePrinter.print_error(str(e))
             return EXIT_STATUS_ERROR
         report.add_contract(contract)
