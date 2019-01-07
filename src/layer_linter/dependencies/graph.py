@@ -94,11 +94,7 @@ class DependencyGraph:
         Returns:
             List of modules that are within the supplied module.
         """
-        descendants: List[Module] = []
-        for candidate in self.modules:
-            if candidate.name.startswith('{}.'.format(module.name)):
-                descendants.append(candidate)
-        return descendants
+        return list(self._grimp_graph.find_descendants(module.name))
 
     def _add_path_to_networkx_graph(self, import_path: ImportPath) -> None:
         self._networkx_graph.add_edge(import_path.importer, import_path.imported)
