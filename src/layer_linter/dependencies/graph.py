@@ -2,6 +2,7 @@ import logging
 from typing import List, Optional, Any
 import networkx  # type: ignore
 from networkx.algorithms import shortest_path  # type: ignore
+import grimp
 
 from ..module import Module, SafeFilenameModule
 from .path import ImportPath
@@ -48,15 +49,15 @@ class DependencyGraph:
 
         self.module_count = len(self.modules)
 
+        self._grimp_graph = grimp.build_graph(package.name)
+
     def get_modules_directly_imported_by(self, importer: Module) -> List[Module]:
         """
         Returns all the modules directly imported by the importer.
         """
-        if importer in self._networkx_graph:
-            return self._networkx_graph.successors(importer)
-        else:
-            # Nodes that do not import anything are not present in the networkx graph.
-            return []
+        return list(
+            self._grimp_graph.find_modules_directly_imported_by(importer.name)
+        )
 
     def find_path(self,
                   downstream: Module, upstream: Module,
