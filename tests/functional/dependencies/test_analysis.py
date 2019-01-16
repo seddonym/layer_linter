@@ -99,6 +99,33 @@ class TestDependencyAnalyzer:
 
         assert set(import_paths) == set(expected_import_paths)
 
+    def test_import_from_within_init_file(self):
+        # Relative imports from within __init__.py files should be interpreted as at the level
+        # of the sibling modules, not the containing package.
+        package = Module('initfileimports')
+        modules = self._build_modules(
+            package_name=package.name,
+            tuples=(
+                ('initfileimports', '__init__.py'),
+                # This init file has ``from . import alpha``.
+                ('initfileimports.one', 'one/__init__.py'),
+                ('initfileimports.one.alpha', 'one/alpha.py'),  # The correct imported module.
+                ('initfileimports.two', 'two/__init__.py'),
+                ('initfileimports.alpha', 'alpha.py'),  # It shouldn't import this one.
+            ),
+        )
+
+        analyzer = DependencyAnalyzer(modules, package)
+        import_paths = analyzer.determine_import_paths()
+
+        expected_import_paths = self._build_import_paths(
+            tuples=(
+                ('initfileimports.one', 'initfileimports.one.alpha'),
+            )
+        )
+
+        assert set(import_paths) == set(expected_import_paths)
+
     def _build_modules(self,
                        package_name: str,
                        tuples: Tuple[Tuple[str, str]]) -> List[SafeFilenameModule]:
