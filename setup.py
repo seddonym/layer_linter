@@ -12,9 +12,9 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 requirements = [
-    'networkx>=2.1,<3',
-    'PyYAML>=3.12,<4',
-    'click>=6.7,<7',
+    'networkx~=2.2',
+    'PyYAML~=4.2b1',
+    'click~=6.7',
 ]
 
 setup(
