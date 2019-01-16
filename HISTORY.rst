@@ -117,8 +117,9 @@ History
 
 * Support defining optional layers.
 
-latest
-------
+0.11.1 (2019-1-16)
+------------------
 
 * Updated dependencies, especially switching to a version of PyYAML to
   address https://nvd.nist.gov/vuln/detail/CVE-2017-18342.
+
