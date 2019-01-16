@@ -5,12 +5,10 @@ import sys
 
 
 def test_dependency_graph():
-    dirname = os.path.dirname(__file__)
-    path = os.path.abspath(os.path.join(dirname, '..', '..', 'assets'))
-
-    sys.path.append(path)
-
     ROOT_PACKAGE = 'dependenciespackage'
+
+    _chdir_and_add_to_system_path(ROOT_PACKAGE)
+
     MODULE_ONE = Module("{}.one".format(ROOT_PACKAGE))
     MODULE_TWO = Module("{}.two".format(ROOT_PACKAGE))
     MODULE_THREE = Module("{}.three".format(ROOT_PACKAGE))
@@ -80,3 +78,11 @@ def test_dependency_graph():
     # dependenciespackage.subpackage.subsubpackage.two <- dependenciespackage.subpackage.subsubpackage.one
     # dependenciespackage.subpackage.subsubpackage.three <- dependenciespackage.subpackage.subsubpackage.two
     assert graph.dependency_count == 8
+
+
+
+def _chdir_and_add_to_system_path(package_name):
+    assets_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'assets'))
+    path = os.path.join(assets_path, package_name)
+    sys.path.append(path)
+    os.chdir(path)
