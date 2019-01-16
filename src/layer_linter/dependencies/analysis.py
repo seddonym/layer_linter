@@ -85,7 +85,18 @@ class DependencyAnalyzer:
                     importing_module_components = module.name.split('.')
                     # TODO: handle level that is too high.
                     # Trim the base module by the number of levels.
-                    module_base = '.'.join(importing_module_components[:-node.level])
+                    if module.filename.endswith('__init__.py'):
+                        # If the scanned module an __init__.py file, we don't want
+                        # to go up an extra level.
+                        number_of_levels_to_trim_by = node.level - 1
+                    else:
+                        number_of_levels_to_trim_by = node.level
+                    if number_of_levels_to_trim_by:
+                        module_base = '.'.join(
+                            importing_module_components[:-number_of_levels_to_trim_by]
+                        )
+                    else:
+                        module_base = '.'.join(importing_module_components)
                     if node.module:
                         module_base = '.'.join([module_base, node.module])
 
