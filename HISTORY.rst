@@ -128,7 +128,7 @@ History
 
 * Fix parsing of relative imports within __init__.py files.
 
-latest
-------
+0.12.1 (2019-2-2)
+-----------------
 
 * Add support for Click 7.x.
