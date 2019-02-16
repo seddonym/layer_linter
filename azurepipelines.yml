@@ -1,0 +1,88 @@
+# https://aka.ms/yaml
+jobs:
+- job: 'Tox'
+
+  strategy:
+    matrix:
+      linux-py37:
+        IMAGE_NAME: 'ubuntu-16.04'
+        TEST_LABEL: 'Linux-py37'
+        PYTHON_VERSION: '3.7'
+        TOXENV: 'py37'
+      macOS-py37:
+        IMAGE_NAME: 'macos-10.13'
+        TEST_LABEL: 'macOS-py37'
+        PYTHON_VERSION: '3.7'
+        TOXENV: 'py37'
+      windows-py37:
+        IMAGE_NAME: 'vs2017-win2016'
+        TEST_LABEL: 'Windows-py37'
+        PYTHON_VERSION: '3.7'
+        TOXENV: 'py37'
+      linux-py36:
+        IMAGE_NAME: 'ubuntu-16.04'
+        TEST_LABEL: 'Linux-py36'
+        PYTHON_VERSION: '3.6'
+        TOXENV: 'py36'
+      macOS-py36:
+        IMAGE_NAME: 'macos-10.13'
+        TEST_LABEL: 'macOS-py36'
+        PYTHON_VERSION: '3.6'
+        TOXENV: 'py36'
+      windows-py36:
+        IMAGE_NAME: 'vs2017-win2016'
+        TEST_LABEL: 'Windows-py36'
+        PYTHON_VERSION: '3.6'
+        TOXENV: 'py36'
+      linux-flake8:
+        IMAGE_NAME: 'ubuntu-16.04'
+        TEST_LABEL: 'Linux-flake8'
+        PYTHON_VERSION: '3.6'
+        TOXENV: 'flake8'
+      linux-layerlint:
+        IMAGE_NAME: 'ubuntu-16.04'
+        TEST_LABEL: 'Linux-layerlint'
+        PYTHON_VERSION: '3.6'
+        TOXENV: 'layer_lint'
+      macOS-layerlint:
+        IMAGE_NAME: 'macos-10.13'
+        TEST_LABEL: 'macOS-layerlint'
+        PYTHON_VERSION: '3.6'
+        TOXENV: 'layer_lint'
+      windows-layerlint:
+        IMAGE_NAME: 'vs2017-win2016'
+        TEST_LABEL: 'Windows-layerlint'
+        PYTHON_VERSION: '3.6'
+        TOXENV: 'layer_lint'
+      linux-mypy:
+        IMAGE_NAME: 'ubuntu-16.04'
+        TEST_LABEL: 'Linux-mypy'
+        PYTHON_VERSION: '3.6'
+        TOXENV: 'mypy'
+      linux-rstlint:
+        IMAGE_NAME: 'ubuntu-16.04'
+        TEST_LABEL: 'Linux-rstlint'
+        PYTHON_VERSION: '3.6'
+        TOXENV: 'rst'
+        
+  pool:
+    vmImage: $(IMAGE_NAME)
+
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '$(PYTHON_VERSION)'
+      architecture: 'x64'
+    
+  - bash: pip install -U tox-py-backwards
+    displayName: 'Install tox'
+
+  - bash: tox
+    displayName: 'Run tox'
+ 
+  - task: PublishTestResults@2
+    displayName: Publish Test Results
+    inputs:
+      testResultsFiles: junit/*.xml
+      testRunTitle: '$(TEST_LABEL)'
+    condition: succeededOrFailed()
