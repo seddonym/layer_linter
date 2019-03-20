@@ -11,8 +11,9 @@ Development Lead
 Contributors
 ------------
 
-- Thiago Colares https://github.com/colares
-- James Cooke https://github.com/jamescooke
+* Thiago Colares https://github.com/colares
+* James Cooke https://github.com/jamescooke
+* Simon Biggs https://github.com/SimonBiggs
 
 Other credits
 -------------
