@@ -132,3 +132,8 @@ History
 -----------------
 
 * Add support for Click 7.x.
+
+latest
+------
+
+* Fix bug with Windows file paths.
