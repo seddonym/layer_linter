@@ -133,7 +133,7 @@ History
 
 * Add support for Click 7.x.
 
-latest
-------
+0.12.2 (2019-3-20)
+------------------
 
 * Fix bug with Windows file paths.
