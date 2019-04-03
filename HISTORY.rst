@@ -137,3 +137,9 @@ History
 ------------------
 
 * Fix bug with Windows file paths.
+
+
+latest
+------
+
+* Add notice that package will be superseded by Import Linter.
