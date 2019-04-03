@@ -11,3 +11,4 @@
    contributing
    authors
    history
+   migrating-to-import-linter

@@ -26,12 +26,13 @@ its internal dependencies (i.e. the imports between its modules).
 * Free software: BSD license
 * Documentation: https://layer-linter.readthedocs.io.
 
-**Warning:** This software is currently in beta. This means there may be changes that break backward
-compatibility. However, due to it being a development tool (rather than something that needs to be installed
-on a production system), it should be suitable for inclusion in your testing pipeline. It also means we actively
-encourage people to try it out and `submit bug reports`_.
+**Notice:** This package will soon be superseded by `Import Linter`_, which does everything Layer Linter
+does, but with more features and a slightly different API. Although it's currently in alpha, you may wish to
+try Import Linter out instead. If you're already using Layer Linter, migrating to Import Linter is simple: there is
+a guide here_.
 
-.. _submit bug reports: https://layer-linter.readthedocs.io/en/stable/contributing.html#report-bugs
+.. _Import Linter: https://github.com/seddonym/import-linter
+.. _here: https://layer-linter.readthedocs.io/en/latest/migrating-to-import-linter.html
 
 Overview
 --------

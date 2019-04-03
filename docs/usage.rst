@@ -94,7 +94,7 @@ Running this will check that your project adheres to the contracts in your ``lay
     - ``--verbose`` (or ``-v``): Output a more verbose report.
     - ``--debug``: Output debug messages when running the linter. No parameters required.
 
-Default usage:
+Default usage:;
 
 .. code-block:: none
 
