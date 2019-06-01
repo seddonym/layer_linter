@@ -228,7 +228,7 @@ class TestReport:
 
         if report_class is VerboseReport:
             self.assert_dependencies_printed(printer)
-        
+
         printer.print_contract_one_liner.assert_has_calls([
             call(contract),
         ])

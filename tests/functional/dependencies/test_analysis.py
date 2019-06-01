@@ -1,8 +1,5 @@
 from typing import Tuple, List
 import os
-import sys
-
-import pytest
 
 from layer_linter.dependencies.analysis import DependencyAnalyzer
 from layer_linter.dependencies.path import ImportPath

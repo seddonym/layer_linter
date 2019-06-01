@@ -19,7 +19,6 @@ class TestImportPath:
         # Also non-ImportPath instances should not be treated as equal.
         assert a != 'foo'
 
-
     def test_hash(self):
         a = ImportPath(importer=Module('foo'), imported=Module('bar'))
         b = ImportPath(importer=Module('foo'), imported=Module('bar'))

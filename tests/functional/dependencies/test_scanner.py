@@ -1,10 +1,8 @@
 import os
 from typing import Tuple, List
 
-import pytest
-
 from layer_linter.dependencies.scanner import PackageScanner
-from layer_linter.module import Module, SafeFilenameModule
+from layer_linter.module import SafeFilenameModule
 
 
 class TestPackageScanner:
@@ -21,7 +19,7 @@ class TestPackageScanner:
             package_name='scannersuccess',
             tuples=(
                 ('scannersuccess', '__init__.py'),
-                ('scannersuccess.one', os.path.join('one','__init__.py')),
+                ('scannersuccess.one', os.path.join('one', '__init__.py')),
                 ('scannersuccess.one.alpha', os.path.join('one', 'alpha.py')),
                 ('scannersuccess.one.beta', os.path.join('one', 'beta.py')),
                 ('scannersuccess.one.gamma', os.path.join('one', 'gamma.py')),
@@ -43,9 +41,8 @@ class TestPackageScanner:
         )
         assert set(modules) == set(expected_modules)
         # Also check that the filenames are the same.
-        sort_by_name = lambda m: m.name
-        sorted_modules = sorted(modules, key=sort_by_name)
-        sorted_expected_modules = sorted(expected_modules, key=sort_by_name)
+        sorted_modules = sorted(modules, key=lambda m: m.name)
+        sorted_expected_modules = sorted(expected_modules, key=lambda m: m.name)
         for index, module in enumerate(sorted_modules):
             assert module.filename == sorted_expected_modules[index].filename
 

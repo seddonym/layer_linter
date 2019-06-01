@@ -44,4 +44,3 @@ def test_debug(mock_logging, mock_get_contracts, mock_get_package, mock_graph,
         mock_logging.basicConfig.assert_called_once_with(level=mock_logging.DEBUG)
     else:
         mock_logging.basicConfig.assert_not_called()
-
