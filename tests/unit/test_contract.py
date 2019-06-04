@@ -258,8 +258,6 @@ class TestContractCheck:
             [Module('foo.two'), Module('foo.three')],
         ]
 
-    
-
     @pytest.mark.parametrize('longer_first', (True, False))
     def test_only_shortest_violation_is_reported(self, longer_first):
         contract = Contract(

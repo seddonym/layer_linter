@@ -77,6 +77,8 @@ def test_dependency_graph():
     # dependenciespackage.subpackage.two <- dependenciespackage.subpackage.one
     # dependenciespackage.subpackage.three <- dependenciespackage.subpackage.two
     # dependenciespackage.subpackage.is <- dependenciespackage.subpackage.three
-    # dependenciespackage.subpackage.subsubpackage.two <- dependenciespackage.subpackage.subsubpackage.one
-    # dependenciespackage.subpackage.subsubpackage.three <- dependenciespackage.subpackage.subsubpackage.two
+    # dependenciespackage.subpackage.subsubpackage.two
+    #           <- dependenciespackage.subpackage.subsubpackage.one
+    # dependenciespackage.subpackage.subsubpackage.three
+    #           <- dependenciespackage.subpackage.subsubpackage.two
     assert graph.dependency_count == 8
