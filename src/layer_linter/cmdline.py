@@ -3,7 +3,7 @@ import argparse
 import os
 import sys
 import logging
-import importlib
+import importlib.util
 
 from .module import SafeFilenameModule
 from .dependencies import DependencyGraph
