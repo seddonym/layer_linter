@@ -139,7 +139,7 @@ History
 * Fix bug with Windows file paths.
 
 
-latest
-------
+0.12.3 (2019-6-8)
+-----------------
 
-* Add notice that package will be superseded by Import Linter.
+* Deprecate Layer Linter in favour of Import Linter.

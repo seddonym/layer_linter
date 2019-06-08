@@ -20,16 +20,20 @@ Layer Linter
         :target: https://layer-linter.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
+
+**Layer Linter has been deprecated in favour of Import Linter.**
+
+`Import Linter`_ does everything Layer Linter does, but with more features and a slightly different API.
+If you're already using Layer Linter, migrating to Import Linter is simple: there is a guide here_.
+
+Outline
+-------
+
 Layer Linter checks that your project follows a custom-defined layered architecture, based on
 its internal dependencies (i.e. the imports between its modules).
 
 * Free software: BSD license
 * Documentation: https://layer-linter.readthedocs.io.
-
-**Notice:** This package will soon be superseded by `Import Linter`_, which does everything Layer Linter
-does, but with more features and a slightly different API. Although it's currently in alpha, you may wish to
-try Import Linter out instead. If you're already using Layer Linter, migrating to Import Linter is simple: there is
-a guide here_.
 
 .. _Import Linter: https://github.com/seddonym/import-linter
 .. _here: https://layer-linter.readthedocs.io/en/latest/migrating-to-import-linter.html
