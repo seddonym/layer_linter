@@ -3,6 +3,8 @@ Layer Linter
 ============
 
 
+.. image:: https://img.shields.io/pypi/status/layer-linter
+
 .. image:: https://img.shields.io/pypi/v/layer_linter.svg
         :target: https://pypi.python.org/pypi/layer_linter
 
