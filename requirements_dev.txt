@@ -11,7 +11,7 @@ twine==1.12.1
 pytest==3.9.1
 pytest-runner==4.2
 pytest-cov==2.6.0
-codecov==2.0.15
+codecov==2.0.16
 mypy==0.641
 setuptools==40.4.3
 tox-pyenv==1.1.0
